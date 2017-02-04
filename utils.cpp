@@ -180,3 +180,14 @@ Matrix read_images(string path, int n_images, int image_size) {
 
     return result;
 }
+
+template <class T>
+vector<vector<T>> transpose(vector<vector<T>> X) {
+    vector<vector<T>> XT(n_cols(X), vector<T>(n_rows(X)));
+    for(int j=0; j<n_cols(X); j++) {
+        for(int i=0; i<n_rows(X); i++) {
+            XT[j][i] = X[i][j];
+        }
+    }
+    return XT;
+}

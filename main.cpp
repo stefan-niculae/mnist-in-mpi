@@ -5,7 +5,14 @@ using namespace std;
 
 
 int main() {
-    Matrix m = read_images("/Users/Stefan/Downloads/t10k-images-idx3-ubyte", 10, 28 * 28);
-    print_image(m[8]);
-    cout << m[8].size();
+    vector<int> v0 = {0, 2, 3};
+    vector<int> v1 = {1, 5, 6};
+    vector<int> v2 = {2, 0, 1};
+
+    vector<vector<int>> m = {v0, v1, v2};
+
+    print(transpose(m));
+
+    char* s;
+    cin >> s;
 }
