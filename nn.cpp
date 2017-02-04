@@ -3,6 +3,7 @@
 #include <utility>
 using namespace std;
 
+typedef pair<Matrix, Vector> Gradient;
 
 class NN {
 
@@ -11,24 +12,36 @@ class NN {
 
     public:
 
-        pair<Matrix, Vector> grad(Matrix X, Matrix Y) {
-            Matrix Y_prob = softmax(W * X + b));
+        pair<Gradient, double> grad(Matrix X, Matrix Y) {
+            Matrix y_prob = softmax(W * X + b));
             // error at last layer
-            double cost = CE(Y, Y_prob);
             Matrix delta = Y_prob - Y;
+            
             // return gradient of cros entropy cost
-            return make_pair(delta * transpose(X), delta);
+            auto gradient = make_pair(delta * transpose(X), delta);
+            double cost = CE(Y, Y_prob);
+
+            return make_pair(gradient, cost);
         }
 
-        void train(Matrix X, Matrix Y, int epochs=10, int batch_size=100, double lr=0.1) {
+        Vector train(Matrix X, Matrix Y, int epochs=10, int batch_size=100, double lr=0.1) {
+            Vector cost_history;
+
             for(int epoch=0; epoch<epochs; epoch++) {
                 for(int i=0; i<n_rows(X); i+=batch_size) {
                     
-                    pair<Matrix, Vector> deltaJ;
-                    deltaJ = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size);
-                    W = W - lr * 1/batch_size * deltaJ.first;
-                    b = b - lr * 1/batch_size * deltaJ.second;
+                    auto res = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size);
+                    auto gradient = res.first;
+
+                    W = W - lr * 1/batch_size * gradient.first;
+                    b = b - lr * 1/batch_size * gradient.second;
+
+                    auto cost = res.second;
+                    cost_history.push_back(cost);
                 }
             }
+
+            return cost_history;
         }
+
 };
