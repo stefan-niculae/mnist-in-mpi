@@ -3,5 +3,5 @@
     "command": "mpic++",
     "isShellCommand": true,
     "showOutput": "always",
-    "args": ["-g", "main.cpp", "-o", "main.out"]
+    "args": ["-g", "main.cpp", "-o", "main.out", "-Wno-c++11-extensions"]
 }

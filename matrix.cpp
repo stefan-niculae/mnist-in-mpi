@@ -2,9 +2,6 @@
 #include <fstream>
 #include <vector>
 #include <random>
-#include "mpi.h"
-
-#include <unistd.h>
 
 using namespace std;
 
@@ -14,7 +11,6 @@ const unsigned int MAX_VAL = 10;
 
 
 class Matrix {
-public:
     class Row {
         // in order to make the double-index operator [][] work
     public:
@@ -36,9 +32,9 @@ public:
         }
     };
 
-
     vector<Row> _rows;
 
+public:
     Matrix() { /* nothing? */ }
 
     Matrix(long n_rows, long n_cols) {
@@ -47,21 +43,47 @@ public:
     }
 
     Matrix(string filename) {
-        ifstream file(filename);
-
-        long n_rows, n_cols;
-        file >> n_rows >> n_cols;
-        Matrix m(n_rows, n_cols);
-
-        double x;
-        for (long i = 0; i < n_rows; ++i)
-            for (long j = 0; j < n_cols; ++j) {
-                file >> x;
-                m[i][j] = x;
-            }
-
-        _rows = m._rows;
-        file.close();
+        // int ReverseInt (int i)
+        // {
+        //     unsigned char ch1, ch2, ch3, ch4;
+        //     ch1=i&255;
+        //     ch2=(i>>8)&255;
+        //     ch3=(i>>16)&255;
+        //     ch4=(i>>24)&255;
+        //     return((int)ch1<<24)+((int)ch2<<16)+((int)ch3<<8)+ch4;
+        // }
+        // void ReadMNIST(int NumberOfImages, int DataOfAnImage,vector<vector<double>> &arr)
+        // {
+        //     arr.resize(NumberOfImages,vector<double>(DataOfAnImage));
+        //     ifstream file ("C:\\t10k-images.idx3-ubyte",ios::binary);
+        //     if (file.is_open())
+        //     {
+        //         int magic_number=0;
+        //         int number_of_images=0;
+        //         int n_rows=0;
+        //         int n_cols=0;
+        //         file.read((char*)&magic_number,sizeof(magic_number));
+        //         magic_number= ReverseInt(magic_number);
+        //         file.read((char*)&number_of_images,sizeof(number_of_images));
+        //         number_of_images= ReverseInt(number_of_images);
+        //         file.read((char*)&n_rows,sizeof(n_rows));
+        //         n_rows= ReverseInt(n_rows);
+        //         file.read((char*)&n_cols,sizeof(n_cols));
+        //         n_cols= ReverseInt(n_cols);
+        //         for(int i=0;i<number_of_images;++i)
+        //         {
+        //             for(int r=0;r<n_rows;++r)
+        //             {
+        //                 for(int c=0;c<n_cols;++c)
+        //                 {
+        //                     unsigned char temp=0;
+        //                     file.read((char*)&temp,sizeof(temp));
+        //                     arr[i][(n_rows*r)+c]= (double)temp;
+        //                 }
+        //             }
+        //         }
+        //     }
+        // }
     }
 
     Row& operator[](long index) {
@@ -87,8 +109,10 @@ public:
             for (long j = 0; j < n_cols(); ++j)
                 _rows[i][j] = rand() % MAX_VAL;
     }
-};
 
+    friend ostream &operator<<(ostream &os, const Matrix::Row &row);
+    friend ostream &operator<<(ostream &os, const Matrix &matrix);
+};
 
 ostream& operator<<(ostream& os, const Matrix::Row& row) {
     for (const auto& elem : row._values)
@@ -134,69 +158,4 @@ Matrix operator+ (const Matrix& a, const Matrix& b) {
             result[r][c] = a[r][c] + b[r][c];
 
     return result;
-}
-
-Matrix multiply(const Matrix& lhs, const Matrix& rhs, long row_from, long row_to) {
-    if (lhs.n_cols() != rhs.n_rows())
-        throw "Dimensions do not agree for matrix multiplication!";
-
-    long n_rows = lhs.n_rows();
-    long p      = lhs.n_cols();
-    long n_cols = lhs.n_cols();
-
-    Matrix result(n_rows, n_cols);
-    for (long r = row_from; r < row_to; ++r)
-        for (long c = 0; c < n_cols; ++c)
-            for (long k = 0; k < p; ++k)
-                result[r][c] += lhs[r][k] * rhs[k][c];
-
-    return result;
-}
-
-void dummy_multiplication(long matrix_dim)
-{
-    srand(DEFAULT_SEED);
-
-    // Generate matrices for input
-    Matrix a(matrix_dim, matrix_dim);
-    Matrix b(matrix_dim, matrix_dim);
-    a.randomize_values();
-    b.randomize_values();
-
-    // Initialize MPI
-    int rank, n_processes;
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    MPI_Comm_size(MPI_COMM_WORLD, &n_processes);
-
-    // Number of rows each worker process gets
-    const int tag = 0;
-    long chunk_rows = matrix_dim / (n_processes - 1);
-
-    // Master
-    if (rank == 0) {
-        Matrix result(matrix_dim, matrix_dim); // initialize result Matrix with zeros
-
-        // Wait for each worker to finish
-        for (int worker = 1; worker < n_processes; ++worker) {
-            long start_row = chunk_rows * (worker - 1); // workers start from rank 1
-            for (long row = start_row; row < start_row + chunk_rows; ++row)
-                // The result has to be sent row-by-row, instead of all at once
-                // because std vectors are guaranteed to be contiguous
-                // but not 2-dimensional vectors
-                MPI_Recv(result.array_from_row(row), matrix_dim, MPI_DOUBLE, worker,
-                         tag, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-        }
-
-    }
-
-    // Workers
-    else {
-        long start_row = chunk_rows * (rank - 1); // workers start from rank 1
-        Matrix partial_result = multiply(a, b, start_row, start_row + chunk_rows);
-
-        // See comment on master's task on reason for sending row-by-row
-        for (long row = start_row; row < start_row + chunk_rows; ++row)
-            MPI_Send(partial_result.array_from_row(row), matrix_dim, MPI_DOUBLE, 0,
-                     tag, MPI_COMM_WORLD);
-    }
 }
