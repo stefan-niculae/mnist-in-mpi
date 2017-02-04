@@ -35,6 +35,8 @@ vector<vector<T>> operator*(double scalar, vector<vector<T>> matrix);
 template <class T>
 vector<vector<T>> operator-(vector<vector<T>> lhs, vector<vector<T>> rhs);
 
+// matrix multiplication (dot)
+
 
 // print vector
 template <class T>

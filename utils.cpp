@@ -51,7 +51,11 @@ int n_cols(vector<vector<T>> m) {
         m[0].size();
 }
 
-
+template <class T>
+vector<vector<T>> init(int rows, int cols, T value) {
+    vector<T> blank_row(cols, value);
+    return vector<vector<T>>(rows, blank_row);
+}
 
 template <class T>
 vector<vector<T>> operator* (double scalar, vector<vector<T>> matrix) {
@@ -70,6 +74,25 @@ vector<vector<T>> operator- (vector<vector<T>> lhs, vector<vector<T>> rhs) {
             result[i][j] -= rhs[i][j];
     return result;
 }
+
+template <class T>
+vector<vector<T>> operator* (vector<vector<T>> lhs, vector<vector<T>> rhs) {
+    if (n_cols(lhs) != n_rows(rhs))
+        throw "Dimensions do not agree for matrix multiplication!";
+
+    int n = n_rows(lhs);
+    int p = n_cols(lhs);
+    int m = n_cols(rhs);
+    auto result = init(n, m, 0);
+
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j)
+            for (int k = 0; k < p; ++k)
+                result[i][j] += lhs[i][k] * rhs[k][j];
+
+    return result;
+}
+
 
 
 
