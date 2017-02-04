@@ -122,7 +122,19 @@ void print(vector<vector<T>> m) {
     cout << endl;
 }
 
+void print_image(Vector pixels) {
+    for (int i = 0; i < 28 * 28; ++i) {
+        if (i > 0 && i % 28 == 0)
+            cout << endl;
 
+        if (pixels[i] == 0)
+            cout << ' ';
+        else
+            cout << pixels[i];
+        cout << ' ';
+    }
+    cout << endl << endl;
+}
 
 // source: https://compvisionlab.wordpress.com/2014/01/01/c-code-for-reading-mnist-data-set/
 int reverse_int(int x) {
@@ -144,8 +156,7 @@ Matrix read_images(string path, int n_images, int image_size) {
     if (!file.is_open())
         throw "Incorrect path: " + path;
 
-    int magic_number = 0, n_rows = 0, n_cols = 0;
-    n_images = 0;
+    int magic_number, n_rows, n_cols;
 
     file.read((char*)&magic_number, sizeof(magic_number));
     magic_number = reverse_int(magic_number);
@@ -162,7 +173,7 @@ Matrix read_images(string path, int n_images, int image_size) {
     for (int i = 0; i < n_images; ++i)
         for (int r = 0; r < n_rows; ++r)
             for (int c = 0; c < n_cols; ++c) {
-                unsigned char temp=0;
+                unsigned char temp;
                 file.read((char*)&temp, sizeof(temp));
                 result[i][(n_rows*r)+c] = (double)temp;
             }
