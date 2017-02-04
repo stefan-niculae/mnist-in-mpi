@@ -5,5 +5,5 @@
     "command": "g++",
     "isShellCommand": true,
     "showOutput": "always",
-    "args": ["-g", "main.cpp", "-o", "main"]
+    "args": ["-g", "main.cpp", "-o", "main.out"]
 }

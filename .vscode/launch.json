@@ -6,7 +6,7 @@
             "type": "cppdbg",
             "request": "launch",
             "preLaunchTask": "g++",
-            "program": "${workspaceRoot}/main",
+            "program": "${workspaceRoot}/main.out",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceRoot}",
