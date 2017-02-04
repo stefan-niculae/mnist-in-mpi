@@ -12,5 +12,8 @@ int main() {
 
     vector<vector<int>> m = {v0, v1, v2};
 
-    print(m * m);
+    print(transpose(m));
+
+    char* s;
+    cin >> s;
 }

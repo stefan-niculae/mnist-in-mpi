@@ -3,31 +3,31 @@
 #include <utility>
 using namespace std;
 
+
 class NN {
 
-    vector<vector<double> > W;
-    vector<double> b;
+    Matrix W;
+    Vector b;
 
     public:
 
-        pair<vector<vector<double> >, vector<double> > grad(vector<vector<double> > X, vector<vector<bool> > Y) {
-            vector<vector<double> > y_prob = softmax(W * X + b));
+        pair<Matrix, Vector> grad(Matrix X, Matrix Y) {
+            Matrix Y_prob = softmax(W * X + b));
             // error at last layer
-            vector<vector<double> > delta = y_prob - Y;
+            Matrix delta = Y_prob - Y;
             // return gradient of cros entropy cost
             return make_pair(delta * transpose(X), delta);
         }
 
-        void train(vector<vector<double> > X, vector<vector<bool> > Y, int epochs=10, int batch_size=100, double lr=0.1) {
-            for(int epoch=0;epoch<epochs;epoch++) {
-                for(int i=0;i<n_rows(X);i+=batch_size) {
+        void train(Matrix X, Matrix Y, int epochs=10, int batch_size=100, double lr=0.1) {
+            for(int epoch=0; epoch<epochs; epoch++) {
+                for(int i=0; i<n_rows(X); i+=batch_size) {
                     
-                    pair<vector<vector<double> >, vector<double> > deltaJ;
+                    pair<Matrix, Vector> deltaJ;
                     deltaJ = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size);
                     W = W - lr * deltaJ.first;
                     b = b - lr * deltaJ.second;
                 }
             }
         }
-
 };
