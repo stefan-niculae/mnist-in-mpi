@@ -64,6 +64,11 @@ vector<vector<T>> operator* (double scalar, vector<vector<T>> matrix) {
 
 template <class T>
 vector<vector<T>> operator- (vector<vector<T>> lhs, vector<vector<T>> rhs) {
+    if(n_rows(lhs) != n_rows(rhs)) {
+        throw sprintf("Number of rows is different, %d != %d", n_rows(lhs), n_rows(rhs));
+    } else if(n_cols(lhs) != n_cols(rhs)) {
+        throw sprintf("Number of colums is different, %d != %d", n_cols(lhs), n_cols(rhs));        
+    }
     auto result = lhs;
     for (int i = 0; i < n_rows(rhs); ++i)
         for (int j = 0; j < n_cols(rhs); ++j)
