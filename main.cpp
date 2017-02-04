@@ -11,21 +11,19 @@
 
 using namespace std;
 
-typedef vector<double> Vector;
-typedef vector<vector<double>> Matrix;
-
-Vector softmax(Vector v) {
+template <class T>
+vector<T> softmax(vector<T> v) {
     // Subtract maximum to avoid overflow
     double max = *max_element(v.begin(), v.end());
 
-    Vector expd = v; // copy, does not mutate v
+    auto expd = v; // copy, does not mutate v
     double sum = 0;
     for (double &x : expd) {
         x = exp(x - max);
         sum += x;
     }
 
-    Vector result;
+    vector<T> result;
     for (double x : expd) {
         result.push_back(x / sum);
     }
@@ -33,8 +31,9 @@ Vector softmax(Vector v) {
     return result;
 }
 
-Matrix softmax(Matrix m) {
-    Matrix result = m;
+template <class T>
+vector<vector<T>> softmax(vector<vector<T>> m) {
+    auto result = m;
     for (auto& row : m)
         row = softmax(row);
 }
@@ -60,6 +59,42 @@ vector<T> chunk(vector<T> m, int from, int to) {
     return vector<T>(&m[from], &m[to + 1]);;
 }
 
+
+
+
+
+template <class T>
+vector<vector<T>> operator* (double scalar, vector<vector<T>> matrix) {
+    auto result = matrix;
+    for (auto &row : result)
+        for (auto& elem : row)
+            elem *= scalar;
+    return result;
+}
+
+template <class T>
+int n_rows(vector<vector<T>> m) {
+    return m.size();
+}
+
+template <class T>
+int n_cols(vector<vector<T>> m) {
+    return n_rows(m) == 0 ?
+        0 :
+        m[0].size();
+}
+
+template <class T>
+vector<vector<T>> operator- (vector<vector<T>> lhs, vector<vector<T>> rhs) {
+    auto result = lhs;
+    for (int i = 0; i < n_rows(rhs); ++i)
+        for (int j = 0; j < n_cols(rhs); ++j)
+            result[i][j] -= rhs[i][j];
+    return result;
+}
+
+
+
 int main() {
     vector<double> v0 = {0, 2, 3, 4, 1, 2, 3};
     vector<double> v1 = {1, 5, 6, 2, 6, 7, 8};
@@ -68,9 +103,8 @@ int main() {
 
     vector<vector<double>> m = {v0, v1, v2, v3};
 
-    print(m);
-    int from = 1, to = 2;
-    print(chunk(m, from, to));
+    print(m - 2 * m);
+
 
     // cout << "v ";
     // print(v);
