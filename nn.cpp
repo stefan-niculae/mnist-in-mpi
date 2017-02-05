@@ -44,31 +44,39 @@ class NeuralNetwork {
 
     Matrix W;
     Vector b;
+    int n_classes;
+    int data_dim;
 
 public:
 
-    NeuralNetwork(int num_classes=2, int data_dim=3) {
-        // b = new Vector(num_classes);
-        W = blank_matrix(data_dim, num_classes, 0.);
+    NeuralNetwork(int n_classes=10, int data_dim=784) : n_classes(n_classes), data_dim(data_dim) {
+        b = Vector(n_classes);
+        W = blank_matrix(data_dim, n_classes, 0.);
     }
 
     double grad(Matrix X, Matrix Y, Matrix &grad_W, Vector &grad_b) {
-        Matrix Y_prob = softmax(X * W);
+        cout << "X dims: " << n_rows(X) << " " << n_cols(X) << endl;
+        cout << "W dims: " << n_rows(W) << " " << n_cols(W) << endl;
+
+        cout << "Result: " << n_rows(X * W + b) << " " << n_cols(X * W + b) << endl;
+
+        Matrix Y_prob = softmax(X * W + b);
+
+        cout << "Result Softmax: " << n_rows(Y_prob) << " " << n_cols(Y_prob) << endl;
+
         // error at last layer
         Matrix delta = Y_prob - Y;
 
-        // return gradient of cros entropy cost
+        // return gradient of cross entropy cost
         grad_W = delta * X;
         // grad_b = delta;
-        return cross_entropy(Y, Y_prob);;
+        return cross_entropy(Y, Y_prob);
     }
 
     Vector train(Matrix X, Matrix Y, int epochs=10, int batch_size=100, double lr=0.1) {
         Vector cost_history;
-        // X = transpose(X);
-//        print(X);
-        Y = transpose(Y);
-        Matrix grad_W = blank_matrix(3, 2, 0.);
+
+        Matrix grad_W = blank_matrix(this->data_dim, this->n_classes, 0.);
         Vector grad_b;
 
         for(int epoch=0; epoch<epochs; epoch++) {
@@ -82,7 +90,6 @@ public:
                 cost_history.push_back(cost);
             }
         }
-
         return cost_history;
     }
 

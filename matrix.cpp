@@ -36,12 +36,12 @@ vector<T> chunk(const vector<T>& m, int from, int to) {
 }
 
 template <class T>
-vector<vector<T>> blank_matrix(int rows, int cols) {
+inline vector<vector<T>> blank_matrix(int rows, int cols) {
     // Default value
     return vector<vector<T>>(rows, vector<T>(cols));
 }
 template <class T>
-vector<vector<T>> blank_matrix(int rows, int cols, T value) {
+inline vector<vector<T>> blank_matrix(int rows, int cols, T value) {
     return vector<vector<T>>(rows, vector<T>(cols, value));
 }
 
@@ -106,14 +106,14 @@ vector<vector<T>> operator+ (const vector<vector<T>>& lhs, const vector<vector<T
 // matrix - vector addition
 template <class T>
 vector<vector<T>> operator+ (const vector<vector<T>>& matrix, const vector<T>& vect) {
-    if (n_rows(matrix) != vect.size())
+    if (n_cols(matrix) != vect.size())
         throw runtime_error(string_format("Matrix - vector addition: number of rows is different: "
-                                                  "%d, %d", n_rows(matrix), vect.size()));
+                                                  "%d, %d", n_cols(matrix), vect.size()));
 
     auto result = matrix;
     for (int i = 0; i < n_rows(matrix); ++i)
         for (int j = 0; j < n_cols(matrix); ++j)
-            result[i][j] += vect[i];
+            result[i][j] += vect[j];
     return result;
 }
 

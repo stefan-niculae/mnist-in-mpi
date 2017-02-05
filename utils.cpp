@@ -2,6 +2,7 @@
 
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
+#include <string.h>
 
 
 // source: http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
