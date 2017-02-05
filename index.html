@@ -24,7 +24,7 @@
 
 <body>
 
-    <canvas id="drawing-box" width="400" height="400"></canvas>
+    <canvas id="drawing-box" width="420" height="420"></canvas>
     <button id="recognize" class="btn btn-secondary">Recognize</button>
 
     <div id="after-recog">
@@ -35,6 +35,11 @@
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
     <script src="sketch-custom.min.js"></script>
     <script>
+        ORIG_SIZE = 420;
+        SMALL_SIZE = 28;
+        factor = ORIG_SIZE / SMALL_SIZE;
+
+
         box = $('#drawing-box');
         ctx = box.get(0).getContext('2d');
         recog = $('#recognize');
@@ -45,7 +50,7 @@
         afterRecog.hide();
 
         // Recognize button appears only after something is drawn
-        box.click(function () {
+        box.mousedown(function () {
             if (!afterRecog.is(':visible'))
                 recog.show();
         });
@@ -54,10 +59,30 @@
             recog.hide();
             afterRecog.fadeIn();
 
+            var data = ctx.getImageData(0, 0, ORIG_SIZE, ORIG_SIZE).data;
+            var col_sums = new Array(SMALL_SIZE * SMALL_SIZE * factor).fill(0);
+            // 4 channels: +0 is red, +1 is green, +2 is blue, +4 is alpha
+            m = 0;
+
+            for (var i = 0; i < ORIG_SIZE * ORIG_SIZE * 4; i+=4) {
+                if (i < 48) console.log(data[i]);
+                var pixel_number = i / 4;
+                var col_number = Math.floor(pixel_number / factor); // 0..15 to 0; 16..31 to 1 etc
+                col_sums[col_number] += data[i];
+                m = Math.max(data[i], m)
+            }
+
+            var small_sums = new Array(SMALL_SIZE * SMALL_SIZE).fill(0);
+            for (i = 0; i < col_sums.length; i++) {
+                // TODO: this can be shortened
+                var row_number = (i % SMALL_SIZE) + Math.floor(i / SMALL_SIZE / factor) * SMALL_SIZE;
+                small_sums[row_number] += col_sums[i];
+            }
+
+            var max = Math.max.apply(null, small_sums); // so it is independent of how much a pixel measures in canvas
+            var small_avgs = small_sums.map(function (x) { return x / max});
             // TODO: get prediction from C++
-            var data = ctx.getImageData(0, 0, 400, 400).data;
-            for (i = 0; i < 120; i++)
-                console.log(data[i])
+
             afterRecog.find('.prediction').text(9);
         });
 
