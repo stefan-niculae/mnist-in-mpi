@@ -12,9 +12,21 @@ typedef vector<vector<double>> Matrix;
 
 template <class T>
 ostream& operator<<(ostream& os, const vector<vector<T>>& matrix) {
+    // Even though the << operator can apply twice for <vector<vector>>, this way we can add endlines
     for (const auto& row : matrix)
-        os << row;
-    return os << endl;
+        os << row << endl;
+    return os;
+}
+
+template <class T>
+istream& operator>>(istream& is, vector<vector<T>>& matrix) {
+    // Read until end of stream
+    vector<T> v;
+    while (is >> v) {
+        matrix.push_back(v);
+        v.clear();
+    }
+    return is;
 }
 
 template <class T>

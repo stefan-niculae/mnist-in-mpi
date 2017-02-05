@@ -59,12 +59,12 @@ Matrix random_init(int rows, int cols, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
+
+public:
     int n_classes;
     int data_dim;
     Matrix W;
     Matrix b;
-
-public:
 
     NeuralNetwork(int n_classes=10, int data_dim=784) : n_classes(n_classes), data_dim(data_dim) {
         b = blank_matrix(1, n_classes, 0.);
@@ -111,10 +111,50 @@ public:
         return cost_history;
     }
 
+
+    /*** Serialization ***/
+    void save(string path) {
+        ofstream file(path);
+        if (!file.is_open())
+            throw runtime_error(string_format("Could not open for model save: " + path));
+
+        file << *this;
+
+        file.close();
+    }
+
+    void load(string path) {
+        ifstream file(path);
+        if (!file.is_open())
+            throw runtime_error(string_format("Could not open for model load: " + path));
+
+        file >> *this;
+
+        file.close();
+    }
+
     friend ostream& operator<<(ostream& os, const NeuralNetwork& net);
+    friend istream& operator>>(istream& is, NeuralNetwork& net);
 };
 
 
 ostream& operator<<(ostream& os, const NeuralNetwork& net) {
-    os << net.n_classes << net.data_dim;
+    os << net.n_classes << ' ' << net.data_dim << endl;
+    os << net.b << net.W;  // place W last so it can be read until end of file
+    return os;
+}
+
+istream& operator>>(istream& is, NeuralNetwork& net) {
+    is >> net.n_classes >> net.data_dim;
+
+    // net.b is a 1xn matrix, if we read a matrix normally, we read until end of file,
+    // but a vector is read until end of file
+    vector<double> b_vect;
+    do {
+        is >> b_vect;
+    } while (b_vect.size() == 0);  // to account for cursor left at end of line
+    net.b = {b_vect};
+
+    is >> net.W;
+    return is;
 }

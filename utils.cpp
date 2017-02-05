@@ -32,7 +32,20 @@ template <class T>
 ostream& operator<<(ostream& os, const vector<T>& v) {
     for (const auto& x : v)
         os << x << ' ';
-    return os << endl;
+    return os;
+}
+
+template <class T>
+istream& operator>>(istream& is, vector<T>& v) {
+    string line;
+    getline(is, line);
+    istringstream ss(line);
+
+    T x;
+    while (ss >> x) // until end of line
+        v.push_back(x);
+
+    return is;
 }
 
 

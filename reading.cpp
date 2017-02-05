@@ -36,6 +36,7 @@ void read_data(string filename, Matrix& images, Matrix& labels) {
 
         images.push_back(image);
     }
+    file.close();
 
     for (auto val : label_values)
         labels.push_back(make_one_hot(val));

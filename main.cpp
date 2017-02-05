@@ -12,11 +12,12 @@ int main() {
 //    read_data("data/train.csv", images, labels);
 //    print_image(images[0]);
 
-    NeuralNetwork net;
-    vector<double> v = {1, 2, 3};
+//    NeuralNetwork net;
+//    net.save("models/test.nn");
 
-    Matrix m = {v, v};
-    cout << m;
+    NeuralNetwork net2;
+    net2.load("models/test.nn");
+    cout << net2;
 
 //    auto history = net.train(images, labels, 10, 100, .1);
 //    print(history);
