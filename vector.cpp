@@ -40,7 +40,7 @@ vector<T> operator* (T scalar, const vector<T>& vector) {
 
 // vector subtraction
 template <class T>
-vector<T> operator- (const vector<T>& lhs, const <vector>& rhs) {
+vector<T> operator- (const vector<T>& lhs, const vector<T>& rhs) {
     if (lhs.size() != rhs.size())
         throw runtime_error(string_format("Vector subtraction: sizes are different: "
                                                   "lhs = %d, rhs = %d", lhs.size(), rhs.size()));
