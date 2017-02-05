@@ -59,10 +59,10 @@ Matrix random_init(int rows, int cols, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    Matrix W;
-    Matrix b;
     int n_classes;
     int data_dim;
+    Matrix W;
+    Matrix b;
 
 public:
 
@@ -111,4 +111,10 @@ public:
         return cost_history;
     }
 
+    friend ostream& operator<<(ostream& os, const NeuralNetwork& net);
 };
+
+
+ostream& operator<<(ostream& os, const NeuralNetwork& net) {
+    os << net.n_classes << net.data_dim;
+}

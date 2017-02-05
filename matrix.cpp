@@ -11,10 +11,10 @@ typedef vector<vector<double>> Matrix;
 
 
 template <class T>
-void print(const vector<vector<T>>& m) {
-    for (const auto& row : m)
-        print(row);
-    cout << endl;
+ostream& operator<<(ostream& os, const vector<vector<T>>& matrix) {
+    for (const auto& row : matrix)
+        os << row;
+    return os << endl;
 }
 
 template <class T>

@@ -29,10 +29,10 @@ std::string string_format(const std::string fmt_str, ...) {
 }
 
 template <class T>
-void print(const vector<T>& v) {
+ostream& operator<<(ostream& os, const vector<T>& v) {
     for (const auto& x : v)
-        cout << x << ' ';
-    cout << endl;
+        os << x << ' ';
+    return os << endl;
 }
 
 
