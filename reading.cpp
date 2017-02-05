@@ -45,3 +45,17 @@ void read_data(string filename, Matrix& images, Matrix& labels) {
     for (auto val : label_values)
         labels.push_back(make_one_hot(val));
 }
+
+void print_image(const vector<double>& pixels) {
+    for (int i = 0; i < 28 * 28; ++i) {
+        if (i > 0 && i % 28 == 0)
+            cout << endl << endl;
+
+        if (pixels[i] == 0)
+            cout << "  ";
+        else
+            cout << int(pixels[i] * 100); // turns 0.25 into 25
+        cout << ' ';
+    }
+    cout << endl << endl;
+}

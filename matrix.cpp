@@ -77,11 +77,31 @@ vector<vector<T>> log(const vector<vector<T>>& matrix) {
 
 // whole matrix sum
 template <class T>
-T sum (const vector<vector<T>>& matrix) {
+T sum(const vector<vector<T>>& matrix) {
     T result = 0;
     for (const auto& row : matrix)
         for (const auto& elem : row)
             result += elem;
+    return result;
+}
+
+// Adds first element of `to_add` to each element on the first column of `matrix`
+// second element of `to_add` to each of second column in `matrix`... etc
+template <class T>
+vector<vector<T>> add_to_each(const vector<vector<T>>& matrix, const vector<vector<T>>& to_add) {
+    if (n_cols(matrix) != n_cols(to_add))
+        throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
+                                                  "%d, %d", n_rows(matrix), n_rows(to_add)));
+    if (n_rows(to_add) != 1)
+        throw runtime_error(string_format("Add to each: vector to add has multiple rows: "
+                                                  "%d", n_cols(to_add)));
+
+    vector<vector<T>> result = matrix;
+    const vector<T>& v = to_add[0];
+    for (int r = 0; r < n_rows(matrix); ++r)
+        for (int c = 0; c < n_cols(matrix); ++c)
+            result[r][c] += v[c];
+
     return result;
 }
 

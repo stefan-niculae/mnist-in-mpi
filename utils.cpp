@@ -1,8 +1,11 @@
 #pragma once
 
+#include <vector>
+#include <string.h>
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
-#include <string.h>
+
+using namespace std;
 
 
 // source: http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
@@ -25,3 +28,9 @@ std::string string_format(const std::string fmt_str, ...) {
     return std::string(formatted.get());
 }
 
+template <class T>
+void print(const vector<T>& v) {
+    for (const auto& x : v)
+        cout << x << ' ';
+    cout << endl;
+}
