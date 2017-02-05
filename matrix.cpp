@@ -187,6 +187,7 @@ vector<vector<T>> operator* (double scalar, const vector<vector<T>>& matrix) {
     return result;
 }
 
+// TODO: faster method
 // matrix multiplication
 template <class T>
 vector<vector<T>> operator* (const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {

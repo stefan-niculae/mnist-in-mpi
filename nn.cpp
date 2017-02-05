@@ -69,8 +69,10 @@ public:
     NeuralNetwork(int n_classes=10, int data_dim=784) : n_classes(n_classes), data_dim(data_dim) {
         b = blank_matrix(1, n_classes, 0.);
         W = random_init(data_dim, n_classes);
+        // TODO? more layers
     }
 
+    // TODO: parallelization
     double grad(Matrix X, Matrix Y, Matrix &grad_W, Matrix &grad_b) {
         Matrix Y_prob = softmax(add_to_each(X * W, b));
 
@@ -94,11 +96,12 @@ public:
 
         for (int epoch=0; epoch<epochs; epoch++) {
             for (int i=0; i<n_rows(X); i+=batch_size) {
-
+                // TODO: make random batch generator
                 auto cost = grad(chunk(X, i, i+batch_size),
                                  chunk(Y, i, i+batch_size),
                                  grad_W,  grad_b);
 
+                // TODO regularization
                 W = W - lr * 1/double(batch_size) * grad_W;
                 b = b - lr * 1/double(batch_size) * grad_b;
 

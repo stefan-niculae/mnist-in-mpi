@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Handwritten Digits Recognizer</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+
+    <style>
+        body {
+            text-align: center;
+        }
+        canvas {
+            box-shadow: 0 0 10px rgba(128, 128, 128, 0.5);
+            border-radius: 7px;
+            display: block;
+            margin: 150px auto 50px;
+        }
+        button {
+            width: 125px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <canvas id="drawing-box" width="400" height="400"></canvas>
+    <button id="recognize" class="btn btn-secondary">Recognize</button>
+
+    <div id="after-recog">
+        <p>Recognized number <b><span class="prediction">5</span></b> with <span class="conf">98</span>% confidence</p>
+        <button id="reset" class="btn btn-secondary">Reset</button>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="sketch-custom.min.js"></script>
+    <script>
+        box = $('#drawing-box');
+        ctx = box.get(0).getContext('2d');
+        recog = $('#recognize');
+        afterRecog = $('#after-recog');
+
+        box.sketch();
+        recog.hide();
+        afterRecog.hide();
+
+        // Recognize button appears only after something is drawn
+        box.click(function () {
+            if (!afterRecog.is(':visible'))
+                recog.show();
+        });
+
+        recog.click(function() {
+            recog.hide();
+            afterRecog.fadeIn();
+
+            // TODO: get prediction from C++
+            var data = ctx.getImageData(0, 0, 400, 400).data;
+            for (i = 0; i < 120; i++)
+                console.log(data[i])
+            afterRecog.find('.prediction').text(9);
+        });
+
+        afterRecog.find('button').click(function () {
+           afterRecog.hide();
+
+           // Clear drawing box
+           box.sketch().actions = [];
+           ctx.clearRect(0, 0, box.get(0).width, box.get(0).height);
+        })
+    </script>
+
+
+</body>
+</html>
