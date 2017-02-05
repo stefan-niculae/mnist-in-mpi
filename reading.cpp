@@ -41,7 +41,7 @@ void read_data(string filename, Matrix& images, Matrix& labels) {
     for (auto val : label_values)
         labels.push_back(make_one_hot(val));
 
-    cout << "Done reading from " + filename;
+    cout << "Done reading from " + filename << endl;
 }
 
 void print_image(const vector<double>& pixels) {

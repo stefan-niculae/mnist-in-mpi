@@ -73,10 +73,11 @@ public:
     }
 
     // TODO: parallelization
-    double grad(Matrix X, Matrix Y, Matrix &grad_W, Matrix &grad_b) {
+    void grad(Matrix X, Matrix Y,
+              Matrix &grad_W, Matrix &grad_b,
+              double& cost, double& acc) {
         Matrix Y_prob = softmax(add_to_each(X * W, b));
 
-        cout << accuracy(argmax_matrix(Y_prob), form_one_hot_matrix(Y)) << endl;
         // Error at last layer
         Matrix delta = Y_prob - Y;
 
@@ -85,30 +86,39 @@ public:
         Matrix ones = blank_matrix(1, delta.size(), 1.);
         grad_b = ones * delta;
 
-        return cross_entropy(Y, Y_prob);
+        cost = cross_entropy(Y, Y_prob);
+        acc = accuracy(argmax_matrix(Y_prob), form_one_hot_matrix(Y));
     }
 
-    vector<double> train(Matrix X, Matrix Y, int epochs=10, int batch_size=100, double lr=0.1) {
-        vector<double> cost_history;
+    void train(Matrix X, Matrix Y,
+                         vector<double>& cost_history, vector<double>& accuracy_history,
+                         int n_epochs=10, int batch_size=100, double lr=0.1,
+                         bool verbose=true) {
 
         Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
         Matrix grad_b = blank_matrix(1, n_classes, 0.);
+        double cost, acc;
 
-        for (int epoch=0; epoch<epochs; epoch++) {
+        for (int epoch=1; epoch<=n_epochs; ++epoch) {
             for (int i=0; i<n_rows(X); i+=batch_size) {
                 // TODO: make random batch generator
-                auto cost = grad(chunk(X, i, i+batch_size),
-                                 chunk(Y, i, i+batch_size),
-                                 grad_W,  grad_b);
+                grad(chunk(X, i, i+batch_size),
+                     chunk(Y, i, i+batch_size),
+                     grad_W,  grad_b,
+                     cost, acc);
 
                 // TODO regularization
                 W = W - lr * 1/double(batch_size) * grad_W;
                 b = b - lr * 1/double(batch_size) * grad_b;
 
                 cost_history.push_back(cost);
+                accuracy_history.push_back(acc);
             }
+
+            // TODO: add early stopping
+            if (verbose)
+                cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
         }
-        return cost_history;
     }
 
 
