@@ -13,6 +13,7 @@ using namespace std;
 typedef vector<double> Vector;
 typedef vector<vector<double>> Matrix;
 
+// TODO: make const& for (almost) every function here
 
 Vector softmax(const Vector& v) {
     // Subtract maximum to avoid overflow
@@ -133,61 +134,17 @@ vector<vector<T>> operator* (vector<vector<T>> lhs, vector<vector<T>> rhs) {
 void print_image(Vector pixels) {
     for (int i = 0; i < 28 * 28; ++i) {
         if (i > 0 && i % 28 == 0)
-            cout << endl;
+            cout << endl << endl;
 
         if (pixels[i] == 0)
-            cout << ' ';
+            cout << "  ";
         else
-            cout << pixels[i];
+            cout << int(pixels[i] * 100); // assumes 0..1
         cout << ' ';
     }
     cout << endl << endl;
 }
 
-// source: https://compvisionlab.wordpress.com/2014/01/01/c-code-for-reading-mnist-data-set/
-int reverse_int(int x) {
-    unsigned char ch1, ch2, ch3, ch4;
-    ch1 =  x      & 255;
-    ch2 = (x>>8)  & 255;
-    ch3 = (x>>16) & 255;
-    ch4 = (x>>24) & 255;
-    return ((int)ch1 << 24) +
-           ((int)ch2 << 16) +
-           ((int)ch3 << 8)  +
-           ch4;
-}
-
-Matrix read_images(string path, int n_images, int image_size) {
-    Matrix result = blank_matrix(n_images, image_size, 0.);
-    ifstream file(path, ios::binary);
-
-    if (!file.is_open())
-        throw "Incorrect path: " + path;
-
-    int magic_number, n_rows, n_cols;
-
-    file.read((char*)&magic_number, sizeof(magic_number));
-    magic_number = reverse_int(magic_number);
-
-    file.read((char*)&n_images, sizeof(n_images));
-    n_images = reverse_int(n_images);
-
-    file.read((char*)&n_rows, sizeof(n_rows));
-    n_rows = reverse_int(n_rows);
-
-    file.read((char*)&n_cols, sizeof(n_cols));
-    n_cols = reverse_int(n_cols);
-
-    for (int i = 0; i < n_images; ++i)
-        for (int r = 0; r < n_rows; ++r)
-            for (int c = 0; c < n_cols; ++c) {
-                unsigned char temp;
-                file.read((char*)&temp, sizeof(temp));
-                result[i][(n_rows*r)+c] = (double)temp;
-            }
-
-    return result;
-}
 
 template <class T>
 vector<vector<T>> transpose(vector<vector<T>> matrix) {
