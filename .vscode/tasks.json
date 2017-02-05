@@ -1,7 +1,0 @@
-{
-    "version": "0.1.0",
-    "command": "mpic++",
-    "isShellCommand": true,
-    "showOutput": "always",
-    "args": ["-g", "main.cpp", "-o", "main.out", "-Wno-c++11-extensions", "-std=c++11"]
-}
