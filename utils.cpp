@@ -1,3 +1,4 @@
+#pragma once
 #include <vector>
 #include <algorithm>  // max_element
 #include <math.h>  // exp
@@ -13,19 +14,18 @@ typedef vector<double> Vector;
 typedef vector<vector<double>> Matrix;
 
 
-template <class T>
-vector<T> softmax(vector<T> v) {
+Vector softmax(const Vector& v) {
     // Subtract maximum to avoid overflow
     double max = *max_element(v.begin(), v.end());
 
-    auto expd = v; // copy, does not mutate v
+    auto expd = Vector(v); // copy, does not mutate v
     double sum = 0;
     for (double &x : expd) {
         x = exp(x - max);
         sum += x;
     }
 
-    vector<T> result;
+    Vector result(v.size(), 0.);
     for (double x : expd) {
         result.push_back(x / sum);
     }
@@ -33,11 +33,11 @@ vector<T> softmax(vector<T> v) {
     return result;
 }
 
-template <class T>
-vector<vector<T>> softmax(vector<vector<T>> m) {
-    auto result = m;
-    for (auto& row : m)
+Matrix softmax(const Matrix& m) {
+    auto result = Matrix(m);
+    for (auto& row : result)
         row = softmax(row);
+    return result;
 }
 
 
@@ -45,12 +45,10 @@ vector<vector<T>> softmax(vector<vector<T>> m) {
 template <class T>
 vector<T> chunk(vector<T> m, int from, int to) {
     if(from < 0) {
-        throw "From >= 0";
+        throw "From < 0";
     }
-    if(to > m.size()) {
-        return vector<T>(&m[from], m.last());
-    }
-    return vector<T>(&m[from], &m[to + 1]);
+    if (to > m.size()) to = m.size();
+    return vector<T>(&m[from], &m[to]);
 }
 
 template <class T>
@@ -82,9 +80,10 @@ vector<vector<T>> operator* (double scalar, vector<vector<T>> matrix) {
 template <class T>
 vector<vector<T>> operator- (vector<vector<T>> lhs, vector<vector<T>> rhs) {
     if(n_rows(lhs) != n_rows(rhs)) {
-        throw sprintf("Number of rows is different, %d != %d", n_rows(lhs), n_rows(rhs));
+        cout << n_rows(lhs) << " " << n_rows(rhs);
+        throw "Number of rows is different"; //, %d != %d", n_rows(lhs), n_rows(rhs));
     } else if(n_cols(lhs) != n_cols(rhs)) {
-        throw sprintf("Number of colums is different, %d != %d", n_cols(lhs), n_cols(rhs));
+        throw "Number of colums is different"; //, %d != %d", n_cols(lhs), n_cols(rhs));
     }
     auto result = lhs;
     for (int i = 0; i < n_rows(rhs); ++i)
@@ -92,27 +91,6 @@ vector<vector<T>> operator- (vector<vector<T>> lhs, vector<vector<T>> rhs) {
             result[i][j] -= rhs[i][j];
     return result;
 }
-
-template <class T>
-vector<vector<T>> operator* (vector<vector<T>> lhs, vector<vector<T>> rhs) {
-    if (n_cols(lhs) != n_rows(rhs))
-        throw "Dimensions do not agree for matrix multiplication!";
-
-    int n = n_rows(lhs);
-    int p = n_cols(lhs);
-    int m = n_cols(rhs);
-    auto result = blank_matrix(n, m, 0);
-
-    for (int i = 0; i < n; ++i)
-        for (int j = 0; j < m; ++j)
-            for (int k = 0; k < p; ++k)
-                result[i][j] += lhs[i][k] * rhs[k][j];
-
-    return result;
-}
-
-
-
 
 template <class T>
 void print(vector<T> v) {
@@ -127,6 +105,30 @@ void print(vector<vector<T>> m) {
         print(row);
     cout << endl;
 }
+
+template <class T>
+vector<vector<T>> operator* (vector<vector<T>> lhs, vector<vector<T>> rhs) {
+    if (n_cols(lhs) != n_rows(rhs)) {
+        print(lhs);
+        print(rhs);
+        cout << n_cols(lhs) << n_rows(rhs);
+        throw "Dimensions do not agree for matrix multiplication!";
+    }
+
+    int n = n_rows(lhs);
+    int p = n_cols(lhs);
+    int m = n_cols(rhs);
+    auto result = blank_matrix(n, m, 0.);
+
+    for (int i = 0; i < n; ++i)
+        for (int j = 0; j < m; ++j)
+            for (int k = 0; k < p; ++k)
+                result[i][j] += lhs[i][k] * rhs[k][j];
+
+    return result;
+}
+
+
 
 void print_image(Vector pixels) {
     for (int i = 0; i < 28 * 28; ++i) {
@@ -215,9 +217,9 @@ vector<vector<T>> operator+ (vector<vector<T>> lhs, vector<vector<T>> rhs) {
 template <class T>
 vector<vector<T>> hadamard (vector<vector<T>> lhs, vector<vector<T>> rhs) {
     if(n_rows(lhs) != n_rows(rhs)) {
-        throw sprintf("Number of rows is different, %d != %d", n_rows(lhs), n_rows(rhs));
+        throw "Number of rows is different"; //, %d != %d", n_rows(lhs), n_rows(rhs));
     } else if(n_cols(lhs) != n_cols(rhs)) {
-        throw sprintf("Number of colums is different, %d != %d", n_cols(lhs), n_cols(rhs));
+        throw "Number of colums is different"; //,%d != %d", n_cols(lhs), n_cols(rhs));
     }
     auto result = lhs;
     for (int i = 0; i < n_rows(rhs); ++i)
@@ -249,4 +251,24 @@ T CE(vector<vector<T>> Y, vector<vector<T>> Y_prob) {
     // Cost function - Cross Entropy
     vector<vector<T>> result = hadamard(Y, log(Y_prob));
     return 1/Y.size() * sum(result);
+}
+
+template <class T>
+vector<vector<T>> operator+ (vector<vector<T>> matrix, vector<T> vect) {
+    if(n_rows(matrix) != n_rows(vect)) {
+        throw sprintf("Number of rows is different, %d != %d", n_rows(matrix), n_rows(vect));
+    }
+    auto result = matrix;
+    for (int i = 0; i < n_rows(matrix); ++i)
+        for (int j = 0; j < n_cols(matrix); ++j)
+            result[i][j] += vect[i];
+    return result;
+}
+
+template <class T>
+vector<T> operator* (double scalar, vector<T> vector) {
+    auto result = vector;
+    for (auto &elem : result)
+            elem *= scalar;
+    return result;
 }
