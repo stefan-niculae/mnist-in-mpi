@@ -7,10 +7,10 @@ using namespace std;
 
 int main() {
     Matrix images, labels;
-    read_data("/Users/Stefan/Downloads/sample.csv", images, labels);
+    read_data("data/sample.csv", images, labels);
+    print_image(images[0]);
 
-    NeuralNetwork net;
-    auto history = net.train(images, labels);
-
+//    NeuralNetwork net;
+//    auto history = net.train(images, labels);
 //    print(history);
 }

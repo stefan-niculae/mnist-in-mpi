@@ -4,6 +4,7 @@
 #include <fstream>
 #include <sstream>
 #include "matrix.cpp"
+#include "utils.cpp"
 
 using namespace std;
 
@@ -16,7 +17,10 @@ Vector make_one_hot(int value, int n_classes=10) {
 }
 
 void read_data(string filename, Matrix& images, Matrix& labels) {
-    ifstream file("/Users/Stefan/Downloads/sample.csv");
+    ifstream file(filename);
+
+    if (!file.is_open())
+        throw runtime_error(string_format("Read MNIST data: could not open file: " + filename));
 
     vector<int> label_values;
     string line;
