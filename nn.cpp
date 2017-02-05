@@ -33,7 +33,7 @@ Matrix softmax(const Matrix& m) {
 double cross_entropy(const Matrix& Y, const Matrix& Y_prob) {
     // Cost function
     Matrix result = hadamard(Y, log(Y_prob));
-    return 1/Y.size() * sum(result);
+    return 1/double(n_rows(Y)) * sum(result);
 }
 
 
@@ -54,19 +54,23 @@ public:
     }
 
     double grad(Matrix X, Matrix Y, Matrix &grad_W, Matrix &grad_b) {
-        Matrix Y_prob = softmax(X * W + b);
+        Matrix Y_prob = softmax(add_to_each(X * W, b));
         // error at last layer
         Matrix delta = Y_prob - Y;
 
         // return gradient of cross entropy cost
         grad_W = transpose(X) * delta;
-        Matrix ones = blank_matrix(1, n_classes, 1.);
+        Matrix ones = blank_matrix(1, delta.size(), 1.);
         grad_b = ones * delta;
+
+//        cout << n_rows(Y) << " " << n_cols(Y_prob);
+//        print(Y_prob);
+
         return cross_entropy(Y, Y_prob);
     }
 
     vector<double> train(Matrix X, Matrix Y, int epochs=10, int batch_size=100, double lr=0.1) {
-        Vector cost_history;
+        vector<double> cost_history;
 
         Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
         Matrix grad_b = blank_matrix(1, n_classes, 0.);
