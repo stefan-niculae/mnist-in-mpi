@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include "utils.cpp"
 
 using namespace std;
 
@@ -28,10 +29,24 @@ void print_image(const Vector& pixels) {
     cout << endl << endl;
 }
 
+// scalar-vector multiplication
 template <class T>
 vector<T> operator* (T scalar, const vector<T>& vector) {
     auto result = vector;
     for (auto& elem : result)
         elem *= scalar;
+    return result;
+}
+
+// vector subtraction
+template <class T>
+vector<T> operator- (const vector<T>& lhs, const <vector>& rhs) {
+    if (lhs.size() != rhs.size())
+        throw runtime_error(string_format("Vector subtraction: sizes are different: "
+                                                  "lhs = %d, rhs = %d", lhs.size(), rhs.size()));
+
+    vector<T> result = lhs;
+    for (const auto& x : rhs)
+        result -= x;
     return result;
 }
