@@ -3,7 +3,6 @@
 #include <vector>
 #include <algorithm>  // max_element
 #include <math.h>  // exp, math
-//#include "vector.cpp"
 #include "utils.cpp"
 
 using namespace std;
@@ -19,12 +18,12 @@ void print(const vector<vector<T>>& m) {
 }
 
 template <class T>
-int n_rows(const vector<vector<T>>& m) {
+inline int n_rows(const vector<vector<T>>& m) {
     return m.size();
 }
 
 template <class T>
-int n_cols(const vector<vector<T>>& m) {
+inline int n_cols(const vector<vector<T>>& m) {
     return n_rows(m) == 0 ?
            0 :
            m[0].size();
@@ -46,6 +45,28 @@ inline vector<vector<T>> blank_matrix(int rows, int cols) {
 template <class T>
 inline vector<vector<T>> blank_matrix(int rows, int cols, T value) {
     return vector<vector<T>>(rows, vector<T>(cols, value));
+}
+
+// row-wise from_one_hot
+vector<int> form_one_hot_matrix(const Matrix& matrix) {
+    vector<int> result;
+    result.reserve(n_rows(matrix));
+
+    for (const auto& row : matrix)
+        result.push_back(from_one_hot(row));
+
+    return result;
+}
+
+// row-wise argmax
+vector<int> argmax_matrix(const Matrix& matrix) {
+    vector<int> result;
+    result.reserve(n_rows(matrix));
+
+    for (const auto& row : matrix)
+        result.push_back(argmax(row));
+
+    return result;
 }
 
 

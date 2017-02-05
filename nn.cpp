@@ -1,6 +1,12 @@
 #pragma once
 
 #include "matrix.cpp"
+#include <random> // normal_distribution
+
+
+#include "evaluate.cpp"
+#include <iostream>
+
 
 using namespace std;
 
@@ -36,6 +42,18 @@ double cross_entropy(const Matrix& Y, const Matrix& Y_prob) {
     return 1/double(n_rows(Y)) * sum(result);
 }
 
+Matrix random_init(int rows, int cols, double mean=0., double std=1.) {
+    default_random_engine generator;
+    normal_distribution<double> distribution(mean, std);
+
+    Matrix result = blank_matrix(rows, cols, 0.);
+    for (auto& row : result)
+        for (double& elem : row)
+            elem = distribution(generator);
+
+    return result;
+}
+
 
 
 
@@ -50,21 +68,20 @@ public:
 
     NeuralNetwork(int n_classes=10, int data_dim=784) : n_classes(n_classes), data_dim(data_dim) {
         b = blank_matrix(1, n_classes, 0.);
-        W = blank_matrix(data_dim, n_classes, 0.);
+        W = random_init(data_dim, n_classes);
     }
 
     double grad(Matrix X, Matrix Y, Matrix &grad_W, Matrix &grad_b) {
         Matrix Y_prob = softmax(add_to_each(X * W, b));
-        // error at last layer
+
+        cout << accuracy(argmax_matrix(Y_prob), form_one_hot_matrix(Y)) << endl;
+        // Error at last layer
         Matrix delta = Y_prob - Y;
 
-        // return gradient of cross entropy cost
+        // Gradient of cross entropy cost
         grad_W = transpose(X) * delta;
         Matrix ones = blank_matrix(1, delta.size(), 1.);
         grad_b = ones * delta;
-
-//        cout << n_rows(Y) << " " << n_cols(Y_prob);
-//        print(Y_prob);
 
         return cross_entropy(Y, Y_prob);
     }
@@ -78,10 +95,12 @@ public:
         for (int epoch=0; epoch<epochs; epoch++) {
             for (int i=0; i<n_rows(X); i+=batch_size) {
 
-                auto cost = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size), grad_W, grad_b);
-                cout << "epoch " << epoch << ", cost = " << cost << endl;
-                W = W - lr * 1/batch_size * grad_W;
-                b = b - lr * 1/batch_size * grad_b;
+                auto cost = grad(chunk(X, i, i+batch_size),
+                                 chunk(Y, i, i+batch_size),
+                                 grad_W,  grad_b);
+
+                W = W - lr * 1/double(batch_size) * grad_W;
+                b = b - lr * 1/double(batch_size) * grad_b;
 
                 cost_history.push_back(cost);
             }

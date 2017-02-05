@@ -34,3 +34,34 @@ void print(const vector<T>& v) {
         cout << x << ' ';
     cout << endl;
 }
+
+
+// for 2 (and 5 classes) ~> {0 0 1 0 0}
+vector<double> make_one_hot(int value, int n_classes=10) {
+    vector<double> result(n_classes, 0);
+    result[value] = 1;
+    return result;
+}
+
+// {0 0 1 0 0} ~> 2
+int from_one_hot(const vector<double>& v) {
+    for (int i = 0; i < v.size(); ++i)
+        if (v[i] == 1)
+            return i;
+
+    throw runtime_error("Vector to convert from one-hot form contains no ones");
+}
+
+
+int argmax(vector<double> v) {
+    double max = v[0];
+    int max_idx = 0;
+
+    for (int i = 1; i < v.size(); ++i)
+        if (v[i] > max) {
+            max = v[i];
+            max_idx = i;
+        }
+
+    return max_idx;
+}

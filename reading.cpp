@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -9,12 +10,6 @@
 using namespace std;
 
 const int PIXEL_DIM = 255;
-
-vector<double> make_one_hot(int value, int n_classes=10) {
-    vector<double> result(n_classes, 0);
-    result[value] = 1;
-    return result;
-}
 
 void read_data(string filename, Matrix& images, Matrix& labels) {
     ifstream file(filename);
@@ -44,6 +39,8 @@ void read_data(string filename, Matrix& images, Matrix& labels) {
 
     for (auto val : label_values)
         labels.push_back(make_one_hot(val));
+
+    cout << "Done reading from " + filename;
 }
 
 void print_image(const vector<double>& pixels) {
