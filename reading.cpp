@@ -10,8 +10,8 @@ using namespace std;
 
 const int PIXEL_DIM = 255;
 
-Vector make_one_hot(int value, int n_classes=10) {
-    Vector result(n_classes, 0);
+vector<double> make_one_hot(int value, int n_classes=10) {
+    vector<double> result(n_classes, 0);
     result[value] = 1;
     return result;
 }

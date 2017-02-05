@@ -6,18 +6,18 @@ using namespace std;
 
 
 /*** Requisites ***/
-Vector softmax(const Vector& v) {
+vector<double> softmax(const vector<double>& v) {
     // Subtract maximum to avoid overflow
     double max = *max_element(v.begin(), v.end());
 
-    auto expd = Vector(v); // copy, does not mutate v
+    vector<double> expd = v; // copy, does not mutate v
     double sum = 0;
     for (double& x : expd) {
         x = exp(x - max);
         sum += x;
     }
 
-    Vector result(v.size(), 0.);
+    vector<double> result(v.size(), 0.);
     for (int i = 0; i < v.size(); ++i)
         result[i] = expd[i] / sum;
 

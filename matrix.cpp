@@ -1,11 +1,14 @@
 #pragma once
 
+#include <vector>
 #include <algorithm>  // max_element
 #include <math.h>  // exp, math
-#include "vector.cpp"
+//#include "vector.cpp"
 #include "utils.cpp"
 
-typedef vector<Vector> Matrix;
+using namespace std;
+
+typedef vector<vector<double>> Matrix;
 
 
 template <class T>
