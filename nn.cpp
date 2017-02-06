@@ -130,6 +130,16 @@ public:
         return argmax_matrix(Y_prob);
     }
 
+    int predict_one(const vector<double>& pixels, double& confidence) {
+        // TODO: refactor to use .predict()
+        Matrix X = {pixels};
+        vector<double> y_prob = softmax(X * W + b)[0]; // just one image, take the first row
+
+        int digit_predicted = argmax(y_prob);
+        confidence = y_prob[digit_predicted];
+        return digit_predicted;
+    }
+
 
     /*** Serialization ***/
     void save(string path) {

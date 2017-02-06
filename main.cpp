@@ -19,11 +19,16 @@ void train_and_save() {
     f.close();
 }
 
-void predict(string pixels_string) {
+int predict(string pixels_string) {
     // TODO: names as additional parameters
-//    NeuralNetwork net("models/trained_a.nn");
     vector<double> pixels = pixels_from_string(pixels_string);
-    print_image(pixels);
+    NeuralNetwork net("models/trained_a.nn");
+
+    double confidence;
+    int digit_predicted = net.predict_one(pixels, confidence);
+    cout << digit_predicted << endl << confidence << endl;
+
+    return digit_predicted;
 }
 
 int main(int argc, const char* argv[]) {
