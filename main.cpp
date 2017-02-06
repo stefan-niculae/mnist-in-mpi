@@ -7,7 +7,7 @@ using namespace std;
 
 int main() {
     Matrix images, labels;
-    read_data("data/train.csv", images, labels);
+    read_data("data/sample.csv", images, labels);
 
     NeuralNetwork net;
     vector<double> costs, accs;

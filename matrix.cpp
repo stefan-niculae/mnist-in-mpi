@@ -60,7 +60,7 @@ inline vector<vector<T>> blank_matrix(int rows, int cols, T value) {
 }
 
 // row-wise from_one_hot
-vector<int> form_one_hot_matrix(const Matrix& matrix) {
+vector<int> from_one_hot_matrix(const Matrix& matrix) {
     vector<int> result;
     result.reserve(n_rows(matrix));
 
@@ -81,6 +81,17 @@ vector<int> argmax_matrix(const Matrix& matrix) {
     return result;
 }
 
+
+template <class T>
+vector<vector<T>> col_wise_sums(const vector<vector<T>>& matrix) {
+    vector<T> sums(n_cols(matrix), 0.);
+    for (int r = 0; r < n_rows(matrix); ++r)
+        for (int c = 0; c < n_cols(matrix); ++c)
+            sums[c] += matrix[r][c];
+
+    Matrix result = {sums}; // make it a 1xn matrix
+    return result;
+}
 
 
 
@@ -147,6 +158,10 @@ vector<vector<T>> add_to_each(const vector<vector<T>>& matrix, const vector<vect
 // matrix addition
 template <class T>
 vector<vector<T>> operator+ (const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
+    // If rhs is a row-vector, add it to each row of the lhs
+    if (n_rows(rhs) == 1 && n_cols(rhs) == n_cols(lhs))
+        return add_to_each(lhs, rhs);
+
     if ((n_rows(lhs) != n_rows(rhs)) || n_cols(lhs) != n_cols(rhs))
         throw runtime_error(string_format("Matrix addition: number of rows/cols is different: "
                                                   "lhs = (%d, %d), rhs = (%d, %d)",

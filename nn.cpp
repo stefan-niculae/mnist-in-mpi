@@ -2,6 +2,7 @@
 
 #include "matrix.cpp"
 #include <random> // normal_distribution
+#include <fstream>
 
 
 #include "evaluate.cpp"
@@ -73,51 +74,52 @@ public:
     }
 
     // TODO: parallelization
-    void grad(Matrix X, Matrix Y,
-              Matrix &grad_W, Matrix &grad_b,
-              double& cost, double& acc) {
-        Matrix Y_prob = softmax(add_to_each(X * W, b));
+    double grad(Matrix X, Matrix Y,
+                Matrix &grad_W, Matrix &grad_b) {
+        double n = n_rows(X);  // double instead of int so division works
 
+        Matrix Y_prob = softmax(X * W + b); // add bias to each
         // Error at last layer
         Matrix delta = Y_prob - Y;
 
         // Gradient of cross entropy cost
-        grad_W = transpose(X) * delta;
-        Matrix ones = blank_matrix(1, delta.size(), 1.);
-        grad_b = ones * delta;
+        grad_W = 1/n * transpose(X) * delta;
+        grad_b = 1/n * col_wise_sums(delta);
 
-        cost = cross_entropy(Y, Y_prob);
-        acc = accuracy(argmax_matrix(Y_prob), form_one_hot_matrix(Y));
+        return cross_entropy(Y, Y_prob); // cost
     }
 
     void train(Matrix X, Matrix Y,
-                         vector<double>& cost_history, vector<double>& accuracy_history,
-                         int n_epochs=10, int batch_size=100, double lr=0.1,
-                         bool verbose=true) {
+               vector<double>& cost_history, vector<double>& accuracy_history,
+               int n_epochs=10, int batch_size=100, double lr=0.1,
+               bool verbose=true) {
+        double cost, acc;
+        auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
 
         Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
         Matrix grad_b = blank_matrix(1, n_classes, 0.);
-        double cost, acc;
 
-        for (int epoch=1; epoch<=n_epochs; ++epoch) {
-            for (int i=0; i<n_rows(X); i+=batch_size) {
-                // TODO: make random batch generator
-                grad(chunk(X, i, i+batch_size),
-                     chunk(Y, i, i+batch_size),
-                     grad_W,  grad_b,
-                     cost, acc);
-
-                // TODO regularization
-                W = W - lr * 1/double(batch_size) * grad_W;
-                b = b - lr * 1/double(batch_size) * grad_b;
-
-                cost_history.push_back(cost);
-                accuracy_history.push_back(acc);
-            }
-
-            // TODO: add early stopping
+        for (int epoch = 1; epoch <= n_epochs; ++epoch) {
             if (verbose)
                 cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
+
+            for (int i = 0; i < n_rows(X); i+=batch_size) {
+                // TODO: make random batch generator
+                cost = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size),
+                            grad_W,  grad_b);
+
+                // TODO regularization
+                W = W - lr * grad_W;
+                b = b - lr * grad_b;
+
+                cost_history.push_back(cost);
+            }
+            // TODO: add early stopping
+
+            // Compute accuracy after each epoch
+            Matrix Y_prob = softmax(X * W + b);
+            acc = accuracy(argmax_matrix(Y_prob), Y_labels);
+            accuracy_history.push_back(acc);
         }
     }
 
