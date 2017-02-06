@@ -2,9 +2,19 @@
 *.out
 *.out.dSYM
 
+# Build steps
 cmake-build-debug/
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+
+# IDE
 .idea/
 
+# Big files
 data/
 models/
 histories/
+
+

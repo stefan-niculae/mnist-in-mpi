@@ -213,8 +213,8 @@ vector<vector<T>> operator* (const vector<vector<T>>& lhs, const vector<vector<T
     auto result = blank_matrix(n, m, 0.);
 
     for (int i = 0; i < n; ++i)
-        for (int j = 0; j < m; ++j)
-            for (int k = 0; k < p; ++k)
+        for (int k = 0; k < p; ++k)
+            for (int j = 0; j < m; ++j)
                 result[i][j] += lhs[i][k] * rhs[k][j];
 
     return result;
