@@ -48,6 +48,18 @@ istream& operator>>(istream& is, vector<T>& v) {
     return is;
 }
 
+vector<double> pixels_from_string(const string& s) {
+    vector<double> v;
+    istringstream ss(s);
+    double x;
+    while (ss >> x) {
+        v.push_back(x);
+        if (ss.peek() == ',')
+            ss.ignore();
+    }
+    return v;
+}
+
 
 // for 2 (and 5 classes) ~> {0 0 1 0 0}
 vector<double> make_one_hot(int value, int n_classes=10) {

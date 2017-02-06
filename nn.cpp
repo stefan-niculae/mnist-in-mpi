@@ -72,6 +72,10 @@ public:
         // TODO? more layers
     }
 
+    NeuralNetwork(string path) {
+        this->load(path);
+    }
+
     // TODO: parallelization
     double grad(Matrix X, Matrix Y,
                 Matrix &grad_W, Matrix &grad_b) {
@@ -116,10 +120,14 @@ public:
             // TODO: add early stopping
 
             // Compute accuracy after each epoch
-            Matrix Y_prob = softmax(X * W + b);
-            acc = accuracy(argmax_matrix(Y_prob), Y_labels);
+            acc = accuracy(predict(X), Y_labels);
             accuracy_history.push_back(acc);
         }
+    }
+
+    vector<int> predict(const Matrix& X) {
+        Matrix Y_prob = softmax(X * W + b);
+        return argmax_matrix(Y_prob);
     }
 
 
