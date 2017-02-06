@@ -1,12 +1,10 @@
 #pragma once
 
-#include "matrix.cpp"
 #include <random> // normal_distribution
-#include <fstream>
-
-
-#include "evaluate.cpp"
 #include <iostream>
+#include <fstream>
+#include "matrix.cpp"
+#include "evaluate.cpp"
 
 
 using namespace std;
@@ -60,12 +58,12 @@ Matrix random_init(int rows, int cols, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-
-public:
     int n_classes;
     int data_dim;
     Matrix W;
     Matrix b;
+
+public:
 
     NeuralNetwork(int n_classes=10, int data_dim=784)
             : n_classes(n_classes), data_dim(data_dim) {
