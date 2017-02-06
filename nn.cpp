@@ -67,7 +67,8 @@ public:
     Matrix W;
     Matrix b;
 
-    NeuralNetwork(int n_classes=10, int data_dim=784) : n_classes(n_classes), data_dim(data_dim) {
+    NeuralNetwork(int n_classes=10, int data_dim=784)
+            : n_classes(n_classes), data_dim(data_dim) {
         b = blank_matrix(1, n_classes, 0.);
         W = random_init(data_dim, n_classes);
         // TODO? more layers

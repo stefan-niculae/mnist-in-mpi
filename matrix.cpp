@@ -59,29 +59,6 @@ inline vector<vector<T>> blank_matrix(int rows, int cols, T value) {
     return vector<vector<T>>(rows, vector<T>(cols, value));
 }
 
-// row-wise from_one_hot
-vector<int> from_one_hot_matrix(const Matrix& matrix) {
-    vector<int> result;
-    result.reserve(n_rows(matrix));
-
-    for (const auto& row : matrix)
-        result.push_back(from_one_hot(row));
-
-    return result;
-}
-
-// row-wise argmax
-vector<int> argmax_matrix(const Matrix& matrix) {
-    vector<int> result;
-    result.reserve(n_rows(matrix));
-
-    for (const auto& row : matrix)
-        result.push_back(argmax(row));
-
-    return result;
-}
-
-
 template <class T>
 vector<vector<T>> col_wise_sums(const vector<vector<T>>& matrix) {
     vector<T> sums(n_cols(matrix), 0.);
