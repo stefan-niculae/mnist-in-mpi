@@ -8,6 +8,7 @@
     <style>
         body {
             text-align: center;
+            color: #fafafa;
         }
         canvas {
             box-shadow: 0 0 10px rgba(128, 128, 128, 0.5);
@@ -33,7 +34,7 @@
     </div>
 
     <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
-    <script src="sketch-custom.min.js"></script>
+    <script src="{{ url_for('static', filename='sketch-custom.min.js') }}"></script>
     <script>
         ORIG_SIZE = 420;
         SMALL_SIZE = 28;
@@ -59,13 +60,30 @@
             recog.hide();
             afterRecog.fadeIn();
 
+            // TODO: start loader here
+            $.getJSON('/recognize', {pixels: resized_pixels().join(',')}, function (result) {
+                console.log(result);
+                afterRecog.find('.prediction').text(result.number);
+                afterRecog.find('.conf').text(result.confidence);
+                // TODO: stop loader here
+            });
+        });
+
+        afterRecog.find('button').click(function () {
+           afterRecog.hide();
+
+           // Clear drawing box
+           box.sketch().actions = [];
+           ctx.clearRect(0, 0, box.get(0).width, box.get(0).height);
+        });
+
+        function resized_pixels() {
             var data = ctx.getImageData(0, 0, ORIG_SIZE, ORIG_SIZE).data;
             var col_sums = new Array(SMALL_SIZE * SMALL_SIZE * factor).fill(0);
             // 4 channels: +0 is red, +1 is green, +2 is blue, +4 is alpha
             m = 0;
 
-            for (var i = 0; i < ORIG_SIZE * ORIG_SIZE * 4; i+=4) {
-                if (i < 48) console.log(data[i]);
+            for (var i = 0; i < ORIG_SIZE * ORIG_SIZE * 4; i += 4) {
                 var pixel_number = i / 4;
                 var col_number = Math.floor(pixel_number / factor); // 0..15 to 0; 16..31 to 1 etc
                 col_sums[col_number] += data[i];
@@ -80,19 +98,9 @@
             }
 
             var max = Math.max.apply(null, small_sums); // so it is independent of how much a pixel measures in canvas
-            var small_avgs = small_sums.map(function (x) { return x / max});
-            // TODO: get prediction from C++
+            return small_sums.map(function (x) { return x / max }); // average
+        }
 
-            afterRecog.find('.prediction').text(9);
-        });
-
-        afterRecog.find('button').click(function () {
-           afterRecog.hide();
-
-           // Clear drawing box
-           box.sketch().actions = [];
-           ctx.clearRect(0, 0, box.get(0).width, box.get(0).height);
-        })
     </script>
 
 
