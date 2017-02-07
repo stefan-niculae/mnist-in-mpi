@@ -125,7 +125,7 @@ void add(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
     if ((lhs.n_rows != rhs.n_rows) || (lhs.n_cols != rhs.n_cols))
         throw runtime_error(string_format("Matrix addition: number of rows/cols is different: "
                                                   "lhs = (%d, %d), rhs = (%d, %d)",
-        lhs.n_rows, lhs.n_cols, rhs.n_rows, rhs.n_cols));
+                                          lhs.n_rows, lhs.n_cols, rhs.n_rows, rhs.n_cols));
 
     for (int i = 0; i < rhs.n_rows; ++i)
         for (int j = 0; j < rhs.n_cols; ++j)
@@ -193,7 +193,7 @@ void scalar_mult(double scalar, const Matrix& matrix, Matrix& result) {
 void dot(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
     if (lhs.n_cols != rhs.n_rows)
         throw runtime_error(string_format("Dimensions do not agree for matrix multiplication: "
-                      "lhs cols = %d, rhs rows = %d", lhs.n_cols, rhs.n_rows));
+                                                  "lhs cols = %d, rhs rows = %d", lhs.n_cols, rhs.n_rows));
 
     int n = lhs.n_rows;
     int p = lhs.n_cols;
