@@ -3,6 +3,7 @@
 \usepackage[english]{babel}
 \usepackage[utf8x]{inputenc}
 
+\usepackage{amsmath}  % equations
 \usepackage{cite}  % bibliograby
 \usepackage{graphicx}  % images
 \usepackage{pgfplots}  % plots
@@ -83,7 +84,32 @@ The images are black-and-white, with a resolution of $28 \times 28$ pixels, repr
 \newpage
 \section{Model}
 \label{sec:model}
-We use a back-propagation neural network with cross-entropy as cost function and soft-max activation. L2 regularization is used to limit overfitting and adaptive learning rate helps soften instability in later epochs.
+We use a back-propagation neural network:
+\begin{align*}
+W^{(k)} &= W^{(k-1)} + \alpha \nabla_W^{(k-1)} \\ 
+b^{(k)} &= b^{(k-1)} + \alpha \nabla_b^{(k-1)}
+\end{align*}
+Where $W$ is the weights matrix, $10 \times 784$ -- the number of classes( one for each digit) and the dimension of an image ($28 \times 28$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element. $W^{(k)}$ denotes the weights at step $k$. $\nabla$ represents the update which must produce to improve prediction.
+\\
+
+The activation function is softmax:
+$$f(x_i)=\frac{exp(x_i)}{\sum_j exp(x_j)}$$
+Where $exp(x)$ represents $e^x$, Euler's constant. It \textit{normalizes} the vector, causing the greatest elements to have logarithmic relative value.
+\\
+
+The cost function is cross-entropy:
+$$H(y_t, y_p)=-\sum_x y_t log(y_p)$$
+Where $y_t$ is the true, correct label of an image and $y_p$ is the label predicted by the model.
+\\
+
+$L_2$ regularization is used:
+$$\frac{1}{\lambda} \sum_i \sum_j W_{i,j}^2$$
+Where $\lambda$ is the regularization parameter. This limits overfitting by imposing a penalty on big weights.
+\\
+
+The model uses an adaptive learning rate:
+$$\eta \frac{ W^{(k)} - W^{(k-1)} } { \nabla^{(k)} - \nabla^{(k-1)} }$$
+Where $\eta$ is the momentum parameter. This helps with stability in late epochs.
 
 \begin{figure}[htb]
 \centering
