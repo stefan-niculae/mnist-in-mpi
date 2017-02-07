@@ -2,11 +2,12 @@
 
 #include <math.h>  // exp, math
 #include "utils.cpp"
-
+#include <iostream>
 
 class Matrix {
 
 public:
+    double** data_anchor;
     double** data;
     int n_rows;
     int n_cols;
@@ -15,12 +16,18 @@ public:
         data = new double*[n_rows];
         for (int i = 0; i < n_rows; ++i)
             data[i] = new double[n_cols];
+        data_anchor = data;  // Set checkpoint to start of data
     }
 
     ~Matrix() {
+        this->reset_to_anchor();
         for (int i = 0; i < n_rows; ++i)
             delete[] data[i];
         delete[] data;
+    }
+
+    void reset_to_anchor() {
+        this->data = data_anchor;
     }
 
     void clear() {
@@ -33,15 +40,15 @@ public:
 
 
 /*** IO ***/
-ostream& operator<<(ostream& os, const Matrix& matrix) {
+std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
     for (int i = 0; i < matrix.n_rows; ++i) {
         for (int j = 0; j < matrix.n_cols; ++j)
             os << matrix.data[i][j] << ' ';
-        os << endl;
+        os << std::endl;
     }
     return os;
 }
-istream& operator>>(istream& is, Matrix& matrix) {
+std::istream& operator>>(std::istream& is, Matrix& matrix) {
     for (int i = 0; i < matrix.n_rows; ++i)
         for (int j = 0; j < matrix.n_cols; ++j)
             is >> matrix.data[i][j];
@@ -51,7 +58,7 @@ istream& operator>>(istream& is, Matrix& matrix) {
 /*** Operators ***/
 // Adds first element of `to_add` to each element on the first column of `matrix`
 // second element of `to_add` to each of second column in `matrix`... etc
-void add_to_each(Matrix& matrix, const Matrix& to_add) {
+void add_to_each(Matrix& matrix, const Matrix& to_add, Matrix& result) {
     if (matrix.n_cols != to_add.n_cols)
         throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
                                                   "%d, %d", matrix.n_rows, matrix.n_rows));
@@ -61,7 +68,7 @@ void add_to_each(Matrix& matrix, const Matrix& to_add) {
 
     for (int r = 0; r < to_add.n_rows; ++r)
         for (int c = 0; c < matrix.n_cols; ++c)
-            matrix.data[r][c] += to_add.data[0][c];
+            result.data[r][c] += to_add.data[0][c];
 }
 
 void col_wise_sums(const Matrix& matrix, Matrix& result) {
@@ -110,22 +117,20 @@ void sum(const Matrix& matrix, double result) {
 ///*** Operators ***/
 //
 //// matrix addition
-//void add (const Matrix& lhs, const vector<vector<T>>& rhs) {
-//    // If rhs is a row-vector, add it to each row of the lhs
-//    if (n_rows(rhs) == 1 && n_cols(rhs) == n_cols(lhs))
-//        return add_to_each(lhs, rhs);
-//
-//    if ((n_rows(lhs) != n_rows(rhs)) || n_cols(lhs) != n_cols(rhs))
-//        throw runtime_error(string_format("Matrix addition: number of rows/cols is different: "
-//                                                  "lhs = (%d, %d), rhs = (%d, %d)",
-//        n_rows(lhs), n_cols(lhs), n_rows(rhs), n_cols(rhs)));
-//
-//    auto result = lhs;
-//    for (int i = 0; i < n_rows(rhs); ++i)
-//        for (int j = 0; j < n_cols(rhs); ++j)
-//            result[i][j] += rhs[i][j];
-//    return result;
-//}
+void add (const Matrix& lhs, const Matrix& rhs, Matrix& result) {
+    // If rhs is a row-vector, add it to each row of the lhs
+    if (rhs.n_rows == 1 && rhs.n_cols == lhs.n_cols)
+//        add_to_each(lhs, rhs, result);
+
+    if ((lhs.n_rows != rhs.n_rows) || (lhs.n_cols != rhs.n_cols))
+        throw runtime_error(string_format("Matrix addition: number of rows/cols is different: "
+                                                  "lhs = (%d, %d), rhs = (%d, %d)",
+        lhs.n_rows, lhs.n_cols, rhs.n_rows, rhs.n_cols));
+
+    for (int i = 0; i < rhs.n_rows; ++i)
+        for (int j = 0; j < rhs.n_cols; ++j)
+            result.data[i][j] = rhs.data[i][j] + lhs.data[i][j];
+}
 //
 //// matrix - vector addition
 //template <class T>
