@@ -67,9 +67,18 @@ class NeuralNetwork {
     Matrix delta;
     Matrix grad_W;
     Matrix grad_b;
+
     Matirx XW;
     Matrix XWb;
-    Matrix softmaxed;
+    Matrix Y_prob;
+
+    Matrix delta;
+
+    Matrix trX;
+    Matrix trXdelta;
+    Matrix grad_W;
+
+    Matrix delta_sums;
 
 public:
 
@@ -84,23 +93,24 @@ public:
         this->load(path);
     }
 
-    // TODO: parallelization
-    double grad(Matrix X, Matrix Y,
-                Matrix &grad_W, Matrix &grad_b) {
-        double n = n_rows(X);  // double instead of int so division works
-        mult(X, W, XW);
-        add(XW, b, XWb);
-        softmax(XWb, softmaxed);
+    void grad(Matrix X, Matrix Y, Matrix& grad_W, Matrix& grad_b) {
+        dot(X, W, XW); // XW = X * W
+        add_to_each(XW, b, XWb); // XWb = X * W + b
+        softmax(XWb, Y_prob); // softmaxed = softmax(X * W + b)
+        sub(Y_prob, Y, delta); // delta = Y_prob - Y
 
-        Matrix Y_prob = softmax(X * W + b); // add bias to each
-        // Error at last layer
-        Matrix delta = Y_prob - Y;
+        double contribution = 1/double(X.n_rows);
 
-        // Gradient of cross entropy cost
-        grad_W = 1/n * transpose(X) * delta;
-        grad_b = 1/n * col_wise_sums(delta);
+        transpose(X, trX); // trX = transpose(X)
+        dot(trX, delta, trXdelta); // trXdelta = transpose(X) * delta
+        scalar_mult(contribution, trXdelta, grad_W); // grad_W = 1/n * transpose(X) * delta
 
-        return cross_entropy(Y, Y_prob); // cost
+
+        col_wise_sums(delta, delta_sums);
+        scalar_mult(contribution, delta_sums); // grad_b = 1/n * col_wise_sums(delta)
+
+        // TODO maybe
+//        return cross_entropy(Y, Y_prob); // cost
     }
 
     void train(Matrix X, Matrix Y,
