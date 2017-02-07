@@ -49,6 +49,8 @@ istream& operator>>(istream& is, Matrix& matrix) {
 }
 
 /*** Operators ***/
+// Adds first element of `to_add` to each element on the first column of `matrix`
+// second element of `to_add` to each of second column in `matrix`... etc
 void add_to_each(Matrix& matrix, const Matrix& to_add) {
     if (matrix.n_cols != to_add.n_cols)
         throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
@@ -69,16 +71,6 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
             result.data[0][c] += matrix.data[r][c];
     }
 }
-
-
-//Matrix chunk(const vector<T>& m, int from, int to) {
-//    if (from < 0)
-//        throw "From < 0";
-//    if (to > m.size()) to = m.size();
-//    return vector<T>(&m[from], &m[to]);
-//}
-
-
 
 //
 //
@@ -103,36 +95,17 @@ void log(const Matrix& matrix, Matrix& result) {
         }
     }
 }
-//
-//// whole matrix sum
-//template <class T>
-//T sum(const vector<vector<T>>& matrix) {
-//    T result = 0;
-//    for (const auto& row : matrix)
-//        for (const auto& elem : row)
-//            result += elem;
-//    return result;
-//}
-//
-//// Adds first element of `to_add` to each element on the first column of `matrix`
-//// second element of `to_add` to each of second column in `matrix`... etc
-//template <class T>
-//vector<vector<T>> add_to_each(const vector<vector<T>>& matrix, const vector<vector<T>>& to_add) {
-//    if (n_cols(matrix) != n_cols(to_add))
-//        throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
-//                                                  "%d, %d", n_rows(matrix), n_rows(to_add)));
-//    if (n_rows(to_add) != 1)
-//        throw runtime_error(string_format("Add to each: vector to add has multiple rows: "
-//                                                  "%d", n_cols(to_add)));
-//
-//    vector<vector<T>> result = matrix;
-//    const vector<T>& v = to_add[0];
-//    for (int r = 0; r < n_rows(matrix); ++r)
-//        for (int c = 0; c < n_cols(matrix); ++c)
-//            result[r][c] += v[c];
-//
-//    return result;
-//}
+
+// whole matrix sum
+void sum(const Matrix& matrix, double result) {
+    double result = 0;
+    for (int i = 0; i < matrix.n_rows ; ++i) {
+        for (int j = 0; j < matrix.n_cols; ++j) {
+            result += matrix.data[i][j];
+        }
+    }
+}
+
 //
 //
 //
