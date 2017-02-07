@@ -46,17 +46,22 @@
 
 \vspace{5cm}
 \begin{abstract}
+TODO: rewrite when paper is done, talk about each section
+
 We implement a neural network to classify handwritten digits. The training is done in parallel, using MPI. We provide a comparison for model hyper-parameters and for training time vs number of processes. It achieves great accuracy and fast training time. An interactive demo is also presented
 \end{abstract}
 
 
 
-\newpage
-\tableofcontents
+% \newpage
+% \pagestyle{plain}
+% \tableofcontents
 
 
 
 \newpage
+TODO: introduction?
+
 \section{Problem statement}
 \label{sec:problem}
 Given a picture of a handwritten digit, label it accordingly 0 - 9.
@@ -84,6 +89,9 @@ The images are black-and-white, with a resolution of $28 \times 28$ pixels, repr
 \newpage
 \section{Model}
 \label{sec:model}
+In order to recognize a given image, we need to model to understand the data. It needs to be able to be queried for a new instance in order to provide an interactive demo.
+\\
+
 We use a back-propagation neural network:
 \begin{align*}
 W^{(k)} &= W^{(k-1)} + \alpha \nabla_W^{(k-1)} \\ 
@@ -119,6 +127,9 @@ Where $\eta$ is the momentum parameter. This helps with stability in late epochs
 
 \paragraph{Training} We employ gradient-descent on mini-batches. Early-stopping prevents the model from further learning when performance on the validation split starts decreasing.
 
+\paragraph{Prediction}
+TODO
+
 \paragraph{Evaluation}
 TODO
 
@@ -150,9 +161,39 @@ TODO
 
 
 
+\newpage
+\section{Parallelization}
+Parallelism is needed in the training phase of the model, as prediction happens instantaneously
+
+TODO: talk about matrix multiplication overhead
+
+TODO: graph of train time vs nr of processors
+
 
 
 \newpage
+\section{Graphical Interface}
+TODO: picture of resizing
+
+TODO: picture of GUI
+
+
+
+\newpage
+\section{Implementation}
+After going through the high-level overview of the project, we now delve into implementation details.
+
+\paragraph{Predictive model} The core of the project is implemented in C++. This includes the neural network training and prediction. Data is maintained in memory using vectors from the standard library.
+
+\paragraph{Graphical Interface} The GUI is implemented as a web page in HTML, with a canvas for the input box.
+The drawing is facilitated by the Sketch library \cite{sketch}. Interactivity and picture resizing is done through JavaScript.
+
+\paragraph{Communication Server} The glue between the front-end and the model is a web-server done in Python, using the Flask library \cite{flask}. An array of $784$ pixels is received through from the GUI and is passed to the compiled executable. The output (predicted digit and prediction confidence) is then passed back through AJAX.
+\\
+
+The entire source code is available at \url{https://github.com/stefan1niculae/mnist-in-mpi}.
+
+\vspace{\fill} % place references at the bottom
 \bibliographystyle{ieeetr}
 	\bibliography{references} % expects file "references.bib"
 	\addcontentsline{toc}{section}{References}
