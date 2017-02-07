@@ -11,46 +11,38 @@ using namespace std;
 
 
 /*** Requisites ***/
-vector<double> softmax(const vector<double>& v) {
-    // Subtract maximum to avoid overflow
-    double max = *max_element(v.begin(), v.end());
+void softmax(const Matrix& matrix, Matrix& result) {
+    for (int row = 0; row < matrix.n_rows; ++row) {
+        double row_max = matrix[row][0];
+        for (int i = 1; i < n; ++i)
+            row_max = matrix[row][i] > row_max ? matrix[row][i] : row_max;
 
-    vector<double> expd = v; // copy, does not mutate v
-    double sum = 0;
-    for (double& x : expd) {
-        x = exp(x - max);
-        sum += x;
+        double row_sum = 0;
+        // Subtract maximum to avoid overflow
+        for (int i = 0; i < n; ++i) {
+            result[row][i] = exp(matrix[row][i] - row_max);
+            row_sum += result[row][i];
+        }
+
+        for (int i = 0; i < n; ++i)
+            result[row][i] /= row_sum;
     }
-
-    vector<double> result(v.size(), 0.);
-    for (int i = 0; i < v.size(); ++i)
-        result[i] = expd[i] / sum;
-
-    return result;
-}
-Matrix softmax(const Matrix& m) {
-    Matrix result = m;
-    for (auto& row : result)
-        row = softmax(row);
-    return result;
 }
 
-double cross_entropy(const Matrix& Y, const Matrix& Y_prob) {
-    // Cost function
-    Matrix result = hadamard(Y, log(Y_prob));
-    return 1/double(n_rows(Y)) * sum(result);
-}
+// TODO
+//double cross_entropy(const Matrix& Y, const Matrix& Y_prob) {
+//    // Cost function
+//    Matrix result = hadamard(Y, log(Y_prob));
+//    return 1/double(n_rows(Y)) * sum(result);
+//}
 
-Matrix random_init(int rows, int cols, double mean=0., double std=1.) {
+void random_init(Matrix& W, double mean=0., double std=1.) {
     default_random_engine generator;
     normal_distribution<double> distribution(mean, std);
 
-    Matrix result = blank_matrix(rows, cols, 0.);
-    for (auto& row : result)
-        for (double& elem : row)
-            elem = distribution(generator);
-
-    return result;
+    for (int i = 0; i < W.n_rows; ++i)
+        for (int j = 0; j < W.n_cols; ++j)
+            W.data[i][j] = distribution(generator);
 }
 
 
@@ -95,8 +87,6 @@ public:
 
     NeuralNetwork(int n_classes=10, int data_dim=784)
             : n_classes(n_classes), data_dim(data_dim) {
-        b = blank_matrix(1, n_classes, 0.);
-        W = random_init(data_dim, n_classes);
         // TODO? more layers
     }
 
@@ -116,7 +106,6 @@ public:
         dot(trX, delta, trXdelta); // trXdelta = transpose(X) * delta
         scalar_mult(contribution, trXdelta, grad_W); // grad_W = 1/n * transpose(X) * delta
 
-
         col_wise_sums(delta, delta_sums);
         scalar_mult(contribution, delta_sums, grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
@@ -131,8 +120,7 @@ public:
 //        double cost, acc;
 //        auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
 
-//        Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
-//        Matrix grad_b = blank_matrix(1, n_classes, 0.);
+        random_init(W);
 
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
             if (verbose)
@@ -150,7 +138,7 @@ public:
                 sub_from(W, lr_grad_W); // W = W - lr * grad_W
                 sub_from(b, lr_grad_b); // b = b - lr * grad_b
 
-                cost_history.push_back(cost);
+//                cost_history.push_back(cost); // TODO
             }
 
             // TODO: add early stopping
