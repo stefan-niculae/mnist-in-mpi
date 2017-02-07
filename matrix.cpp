@@ -86,17 +86,14 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
 ///*** Operations ***/
 //
 //// matrix transposition
-//template <class T>
-//vector<vector<T>> transpose(const vector<vector<T>>& matrix) {
-//    vector<vector<T>> transposed = vector<vector<T>> (n_cols(matrix), vector<T>(n_rows(matrix)));
-//    for (int j=0; j<n_cols(matrix); j++) {
-//        for (int i=0; i<n_rows(matrix); i++) {
-//            transposed[j][i] = matrix[i][j];
-//        }
-//    }
-//    return transposed;
-//}
-//
+void transpose(const Matrix& matrix, Matrix& transposed) {
+    for (int j=0; j<n_cols(matrix); j++) {
+        for (int i=0; i<n_rows(matrix); i++) {
+            transposed[j][i] = matrix[i][j];
+        }
+    }
+}
+
 //// element-wise log
 //template <class T>
 //vector<vector<T>> log(const vector<vector<T>>& matrix) {
