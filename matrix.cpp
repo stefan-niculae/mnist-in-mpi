@@ -22,6 +22,12 @@ public:
             delete[] data[i];
         delete[] data;
     }
+
+    clear() {
+        for (int i = 0; i < n_rows; ++i)
+            for (int j = 0; j < n_cols; ++j)
+                data[i][j] = 0;
+    }
 };
 
 
@@ -62,54 +68,12 @@ void add_to_each(Matrix& matrix, const Matrix& to_add) {
 
 
 
-//
-//template <class T>
-//ostream& operator<<(ostream& os, const vector<vector<T>>& matrix) {
-//    // Even though the << operator can apply twice for <vector<vector>>, this way we can add endlines
-//    for (const auto& row : matrix)
-//        os << row << endl;
-//    return os;
-//}
-//
-//template <class T>
-//istream& operator>>(istream& is, vector<vector<T>>& matrix) {
-//    // Read until end of stream
-//    vector<T> v;
-//    while (is >> v) {
-//        matrix.push_back(v);
-//        v.clear();
-//    }
-//    return is;
-//}
-//
-//template <class T>
-//inline int n_rows(const vector<vector<T>>& m) {
-//    return m.size();
-//}
-//
-//template <class T>
-//inline int n_cols(const vector<vector<T>>& m) {
-//    return n_rows(m) == 0 ?
-//           0 :
-//           m[0].size();
-//}
-//
 //template <class T>
 //vector<T> chunk(const vector<T>& m, int from, int to) {
 //    if (from < 0)
 //        throw "From < 0";
 //    if (to > m.size()) to = m.size();
 //    return vector<T>(&m[from], &m[to]);
-//}
-//
-//template <class T>
-//inline vector<vector<T>> blank_matrix(int rows, int cols) {
-//    // Default value
-//    return vector<vector<T>>(rows, vector<T>(cols));
-//}
-//template <class T>
-//inline vector<vector<T>> blank_matrix(int rows, int cols, T value) {
-//    return vector<vector<T>>(rows, vector<T>(cols, value));
 //}
 //
 //template <class T>
