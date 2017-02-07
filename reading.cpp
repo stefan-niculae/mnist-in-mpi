@@ -11,7 +11,7 @@ using namespace std;
 
 const int PIXEL_DIM = 255;
 
-void read_data(string filename, Matrix& images, Matrix& labels) {
+void read_data(string filename, Matrix& images, Matrix& labels, bool verbose= true) {
     ifstream file(filename);
 
     if (!file.is_open())
@@ -41,7 +41,8 @@ void read_data(string filename, Matrix& images, Matrix& labels) {
     for (auto val : label_values)
         labels.push_back(make_one_hot(val));
 
-    cout << "Done reading from " + filename << endl;
+    if (verbose)
+        cout << "Done reading from " + filename << endl;
 }
 
 void print_image(const vector<double>& pixels) {

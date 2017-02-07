@@ -1,8 +1,10 @@
 #include <iostream>
 #include "reading.cpp"
 #include "nn.cpp"
+#include <iomanip>
 
 using namespace std;
+
 
 void train_and_save() {
     // TODO: names as additional parameters
@@ -31,7 +33,15 @@ int predict(string pixels_string) {
     return digit_predicted;
 }
 
-int main(int argc, const char* argv[]) {
+int main(int argc, char* argv[]) {
+    Matrix images, labels;
+    read_data("/Users/Stefan/Projects/mnist-in-mpi/data/train.csv", images, labels, true);
+    NeuralNetwork net;
+    vector<double> costs, accs;
+    cout << setprecision(3);
+    net.train(images, labels, costs, accs, 35, 400, .1);
+    return 0;
+
     if (argc < 2) {
         cout << "usage: mnist_in_mpi.out (train|predict)" << endl;
         return 1;

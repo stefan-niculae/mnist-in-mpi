@@ -42,6 +42,11 @@ inline int n_cols(const vector<vector<T>>& m) {
 }
 
 template <class T>
+inline int n_elements(const vector<vector<T>>& m) {
+    return n_rows(m) * n_cols(m);
+}
+
+template <class T>
 vector<T> chunk(const vector<T>& m, int from, int to) {
     if (from < 0)
         throw "From < 0";
@@ -73,6 +78,12 @@ vector<vector<T>> col_wise_sums(const vector<vector<T>>& matrix) {
 
 
 /*** Operations ***/
+void clear(Matrix& m) {
+    for (auto& row : m)
+        for (auto& elem : row)
+            elem = 0.;
+}
+
 
 // matrix transposition
 template <class T>
@@ -149,6 +160,12 @@ vector<vector<T>> operator+ (const vector<vector<T>>& lhs, const vector<vector<T
         for (int j = 0; j < n_cols(rhs); ++j)
             result[i][j] += rhs[i][j];
     return result;
+}
+
+template <class T>
+vector<vector<T>> operator+= (vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
+    lhs = lhs + rhs;
+    return lhs;
 }
 
 // matrix - vector addition
