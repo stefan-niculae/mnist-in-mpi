@@ -128,20 +128,19 @@ void add (const Matrix& lhs, const Matrix& rhs, Matrix& result) {
         for (int j = 0; j < rhs.n_cols; ++j)
             result.data[i][j] = rhs.data[i][j] + lhs.data[i][j];
 }
-//
-//// matrix - vector addition
-//template <class T>
-//vector<vector<T>> operator+ (const vector<vector<T>>& matrix, const vector<T>& vect) {
-//    if (n_cols(matrix) != vect.size())
-//        throw runtime_error(string_format("Matrix - vector addition: number of rows is different: "
-//                                                  "%d, %d", n_cols(matrix), vect.size()));
-//
-//    auto result = matrix;
-//    for (int i = 0; i < n_rows(matrix); ++i)
-//        for (int j = 0; j < n_cols(matrix); ++j)
-//            result[i][j] += vect[j];
-//    return result;
-//}
+
+// matrix - vector addition
+void add_vect (const Matrix& matrix, const Matrix& vect, Matrix& result) {
+    if (matrix.n_cols != vect.n_cols)
+        throw runtime_error(string_format("Matrix - vector addition: number of rows is different: "
+                                                  "%d, %d", matrix.n_cols, vect.n_cols));
+    if (vect.n_rows != 1)
+        throw runtime_error(string_format("Matrix - vector addition: vector dims: "
+                                                  "%d, %d", vect.n_rows, vect.n_cols));
+    for (int i = 0; i < matrix.n_rows; ++i)
+        for (int j = 0; j < matrix.n_cols; ++j)
+            result.data[i][j] = matrix.data[i][j] + vect.data[0][j];
+}
 //
 //
 //// matrix subtraction
@@ -171,25 +170,21 @@ void add (const Matrix& lhs, const Matrix& rhs, Matrix& result) {
 //
 //// TODO: faster method
 //// matrix multiplication
-//template <class T>
-//vector<vector<T>> operator* (const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
-//    if (n_cols(lhs) != n_rows(rhs))
-//        throw runtime_error(string_format("Dimensions do not agree for matrix multiplication: "
-//                      "lhs cols = %d, rhs rows = %d", n_cols(lhs), n_rows(rhs)));
-//
-//    int n = n_rows(lhs);
-//    int p = n_cols(lhs);
-//    int m = n_cols(rhs);
-//    auto result = blank_matrix(n, m, 0.);
-//
-//    for (int i = 0; i < n; ++i)
-//        for (int k = 0; k < p; ++k)
-//            for (int j = 0; j < m; ++j)
-//                result[i][j] += lhs[i][k] * rhs[k][j];
-//
-//    return result;
-//}
-//
+void dot(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
+    if (lhs.n_cols != rhs.n_rows)
+        throw runtime_error(string_format("Dimensions do not agree for matrix multiplication: "
+                      "lhs cols = %d, rhs rows = %d", lhs.n_cols, rhs.n_rows));
+
+    int n = lhs.n_rows;
+    int p = lhs.n_cols;
+    int m = rhs.n_cols;
+    result.clear();
+    for (int i = 0; i < n; ++i)
+        for (int k = 0; k < p; ++k)
+            for (int j = 0; j < m; ++j)
+                result.data[i][j] += lhs.data[i][k] * rhs.data[k][j];
+}
+
 //// element-wise matrix multiplication
 //template <class T>
 //vector<vector<T>> hadamard(const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
