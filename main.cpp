@@ -52,6 +52,12 @@ int main(int argc, const char* argv[]) {
 //        return 0;
 //    }
 
+//    double* v = new double[5];
+//    for (int i = 0; i < 5; ++i)
+//        v[i] = 100+i;
+//    double* w = v+2;
+//    cout << w[0];
+
     int n_samples = 250;
     Matrix images(n_samples, 784), labels(n_samples, 10);
     read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/sample.csv"), images, labels);

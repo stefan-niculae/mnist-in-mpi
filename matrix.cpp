@@ -78,8 +78,8 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
 }
 
 /*** Operations ***/
-inline void take_chunk(const Matrix& from, int start_index, Matrix& into) {
-    into.data = from.data + start_index * from.n_cols; // skip n rows, where n is the start index
+inline void take_chunk(const Matrix& from, int start_row, Matrix& into) {
+    into.data = &(from.data[start_row]);
     into.is_chunk = true;
 }
 

@@ -92,11 +92,19 @@ public:
 //    }
 
     void grad() {
-        print_dimensions(chunk_X);
-        print_dimensions(W);
-        print_dimensions(XW);
+//        print_dimensions(chunk_X);
+//        print_dimensions(W);
+//        print_dimensions(XW);
+//        cout << "first elem of chunk x = " << chunk_X.data[0][0] << endl;
+//        for (int i = 0; i < chunk_X.n_rows; ++i) {
+//            for (int j = 0; j < chunk_X.n_cols; ++j) {
+//                chunk_X.data[i][j] *= 1;
+//                cout << i << ',' << j << '=';
+//            }
+//            cout << endl;
+//        }
         dot(chunk_X, W, XW); // XW = X * W
-        cout << "after dot1\n";
+//        cout << "after dot1\n";
         add_to_each(XW, b, XWb); // XWb = X * W + b
 //        cout << "after add_to_each/**/\n";
         softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
@@ -134,13 +142,14 @@ public:
                 cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
 
             for (int batch_start = 0; batch_start < X.n_rows; batch_start += BATCH_SIZE) {
+//                cout << "batch start = " << X.data + batch_start * X.n_cols<< endl;
                 // TODO? make random batch generator
                 take_chunk(X, batch_start, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
 //                cout << "after take chunk X\n";
                 take_chunk(Y, batch_start, chunk_Y);
 //                cout << "after take chunk Y\n";
                 grad(); // grad_W and grad_b are now filled with result
-                cout << "after grad\n";
+//                cout << "after grad\n";
 
                 // TODO? regularization
                 scalar_mult(-lr, grad_W, lr_grad_W);
@@ -148,10 +157,10 @@ public:
 //                cout << "after scalar mults\n";
                 sub_from(W, lr_grad_W); // W = W - lr * grad_W
                 sub_from(b, lr_grad_b); // b = b - lr * grad_b
-                cout << "after update W & b\n";
+//                cout << "after update W & b\n";
 //                cost_history.push_back(cost); // TODO
             }
-            cout << "at end of epoch loop";
+//            cout << "at end of epoch loop";
 
             // TODO: add early stopping
             // Compute accuracy after each epoch
