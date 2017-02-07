@@ -22,11 +22,31 @@ public:
             delete[] data[i];
         delete[] data;
     }
-
 };
 
-/*** Operators ***/
 
+
+/*** IO ***/
+ostream& operator<<(ostream& os, const Matrix& matrix) {
+    for (int i = 0; i < matrix.n_rows; ++i) {
+        for (int j = 0; j < matrix.n_cols; ++j)
+            os << matrix[i][j] << ' ';
+        os << endl;
+    }
+    return os;
+}
+istream& operator>>(istream& is, Matrix& matrix) {
+    for (int i = 0; i < matrix.n_rows; ++i)
+        for (int j = 0; j < matrix.n_cols; ++j)
+            is >> matrix[i][j];
+    return is;
+}
+
+
+
+
+
+/*** Operators ***/
 void add_to_each(Matrix& matrix, const Matrix& to_add) {
     if (matrix.n_cols != to_add.n_cols)
         throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
