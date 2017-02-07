@@ -7,27 +7,23 @@
 class Matrix {
 
 public:
-    double** data_anchor;
     double** data;
     int n_rows;
     int n_cols;
+    bool is_chunk = false;
 
     Matrix(int n_rows,int n_cols): n_rows(n_rows), n_cols(n_cols) {
         data = new double*[n_rows];
         for (int i = 0; i < n_rows; ++i)
             data[i] = new double[n_cols];
-        data_anchor = data;  // Set checkpoint to start of data
     }
 
     ~Matrix() {
-        this->reset_to_anchor();
+        if (is_chunk)
+            return;
         for (int i = 0; i < n_rows; ++i)
             delete[] data[i];
         delete[] data;
-    }
-
-    void reset_to_anchor() {
-        this->data = data_anchor;
     }
 
     void clear() {
@@ -79,12 +75,13 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
     }
 }
 
-//
-//
-//
-///*** Operations ***/
-//
-//// matrix transposition
+/*** Operations ***/
+inline void take_chunk(const Matrix& from, int start_index, Matrix& into) {
+    into.data = from.data + start_index * from.n_cols; // skip n rows, where n is the start index
+    into.is_chunk = true;
+}
+
+// matrix transposition
 void transpose(const Matrix& matrix, Matrix& transposed) {
     for (int j=0; j < matrix.n_cols; j++) {
         for (int i=0; i < matrix.n_rows; i++) {

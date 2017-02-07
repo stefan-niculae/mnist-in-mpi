@@ -80,6 +80,9 @@ class NeuralNetwork {
 
     Matrix delta_sums;
 
+    Matrix chunk_X(chunk_size, 784);
+
+
 public:
 
     NeuralNetwork(int n_classes=10, int data_dim=784)
@@ -120,15 +123,17 @@ public:
         double cost, acc;
         auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
 
-        Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
-        Matrix grad_b = blank_matrix(1, n_classes, 0.);
+//        Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
+//        Matrix grad_b = blank_matrix(1, n_classes, 0.);
 
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
             if (verbose)
                 cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
 
+
             for (int i = 0; i < n_rows(X); i+=batch_size) {
                 // TODO: make random batch generator
+
                 cost = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size),
                             grad_W,  grad_b);
 

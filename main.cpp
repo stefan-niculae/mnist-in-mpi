@@ -52,20 +52,21 @@ int main(int argc, const char* argv[]) {
 //        return 0;
 //    }
 
-    int n_samples = 250;
-    Matrix images(n_samples, 784), labels(n_samples, 10);
-    read_from_csv(string("/home/ionut/workspace/ppc/mnist-in-mpi/data/sample.csv"), images, labels);
-    print_image(images, 0);
+//    int n_samples = 250;
+//    Matrix images(n_samples, 784), labels(n_samples, 10);
+//    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/sample.csv"), images, labels);
+//    print_image(images, 0);
 
-    Matrix mat1(3, 4);
-    Matrix mat2(3, 4);
-
-    Matrix res(3, 4);
-
-    add(mat1, mat2, res);
-
-    cout << res;
-
+//    Matrix m(4, 2);
+//    int k = 0;
+//    for (int i = 0; i < m.n_rows; ++i)
+//        for (int j = 0; j < m.n_cols; ++j)
+//            m.data[i][j] = k++;
+//    cout << m;
+//
+//    Matrix chunk(2, 2);
+//    take_chunk(m, 1, chunk);
+//    cout << endl << chunk;
 
 
     return 0;
