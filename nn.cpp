@@ -58,10 +58,14 @@ Matrix random_init(int rows, int cols, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    int n_classes;
-    int data_dim;
-    Matrix W;
-    Matrix b;
+    const int N_CLASSES = 10; // 10 digits from 0 to 9
+    const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
+    const int BATCH_SIZE = 100; // after how many pictures the weights are updated
+    const int N_WORKERS = 4; // how many processes compute gradient in parallel
+    const int CHUNK_SIZE = BATCH_SIZE / N_WORKERS; // how many rows each worker gets
+
+    Matrix W = Matrix(DATA_DIM, N_CLASSES);
+    Matrix b = Matrix(1, N_CLASSES);
 
     Matrix Y_prob;
     Matrix delta;
@@ -80,7 +84,11 @@ class NeuralNetwork {
 
     Matrix delta_sums;
 
-    Matrix chunk_X(chunk_size, 784);
+    Matrix chunk_X = Matrix(CHUNK_SIZE, DATA_DIM);
+    Matrix chunk_Y = Matrix(CHUNK_SIZE, N_CLASSES);
+
+    Matrix lr_grad_W;
+    matrix lr_grad_b;
 
 
 public:
@@ -96,10 +104,10 @@ public:
         this->load(path);
     }
 
-    void grad(Matrix X, Matrix Y, Matrix& grad_W, Matrix& grad_b) {
+    void grad(const Matrix& X, const Matrix& Y) {
         dot(X, W, XW); // XW = X * W
         add_to_each(XW, b, XWb); // XWb = X * W + b
-        softmax(XWb, Y_prob); // softmaxed = softmax(X * W + b)
+        softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
         sub(Y_prob, Y, delta); // delta = Y_prob - Y
 
         double contribution = 1/double(X.n_rows);
@@ -110,18 +118,18 @@ public:
 
 
         col_wise_sums(delta, delta_sums);
-        scalar_mult(contribution, delta_sums); // grad_b = 1/n * col_wise_sums(delta)
+        scalar_mult(contribution, delta_sums, grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
         // TODO maybe
 //        return cross_entropy(Y, Y_prob); // cost
     }
 
-    void train(Matrix X, Matrix Y,
+    void train(const Matrix& X, const Matrix& Y,
                vector<double>& cost_history, vector<double>& accuracy_history,
                int n_epochs=10, int batch_size=100, double lr=0.1,
                bool verbose=true) {
-        double cost, acc;
-        auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
+//        double cost, acc;
+//        auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
 
 //        Matrix grad_W = blank_matrix(data_dim, n_classes, 0.);
 //        Matrix grad_b = blank_matrix(1, n_classes, 0.);
@@ -130,41 +138,42 @@ public:
             if (verbose)
                 cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
 
+            for (int batch_start = 0; batch_start < X.n_rows; batch_start += BATCH_SIZE) {
+                // TODO? make random batch generator
+                take_chunk(X, batch_start, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
+                take_chunk(Y, batch_start, chunk_Y);
+                grad(chunk_X, chunk_Y); // grad_W and grad_b are now filled with result
 
-            for (int i = 0; i < n_rows(X); i+=batch_size) {
-                // TODO: make random batch generator
-
-                cost = grad(chunk(X, i, i+batch_size), chunk(Y, i, i+batch_size),
-                            grad_W,  grad_b);
-
-                // TODO regularization
-                W = W - lr * grad_W;
-                b = b - lr * grad_b;
+                // TODO? regularization
+                scalar_mult(-lr, grad_W, lr_grad_W);
+                scalar_mult(-lr, grad_b, lr_grad_b);
+                sub_from(W, lr_grad_W); // W = W - lr * grad_W
+                sub_from(b, lr_grad_b); // b = b - lr * grad_b
 
                 cost_history.push_back(cost);
             }
-            // TODO: add early stopping
 
+            // TODO: add early stopping
             // Compute accuracy after each epoch
-            acc = accuracy(predict(X), Y_labels);
-            accuracy_history.push_back(acc);
+//            acc = accuracy(predict(X), Y_labels); // TODO
+//            accuracy_history.push_back(acc);
         }
     }
 
-    vector<int> predict(const Matrix& X) {
-        Matrix Y_prob = softmax(X * W + b);
-        return argmax_matrix(Y_prob);
-    }
-
-    int predict_one(const vector<double>& pixels, double& confidence) {
-        // TODO: refactor to use .predict()
-        Matrix X = {pixels};
-        vector<double> y_prob = softmax(X * W + b)[0]; // just one image, take the first row
-
-        int digit_predicted = argmax(y_prob);
-        confidence = y_prob[digit_predicted];
-        return digit_predicted;
-    }
+//    vector<int> predict(const Matrix& X) {
+//        Matrix Y_prob = softmax(X * W + b);
+//        return argmax_matrix(Y_prob);
+//    }
+//
+//    int predict_one(const vector<double>& pixels, double& confidence) {
+//        // TODO: refactor to use .predict()
+//        Matrix X = {pixels};
+//        vector<double> y_prob = softmax(X * W + b)[0]; // just one image, take the first row
+//
+//        int digit_predicted = argmax(y_prob);
+//        confidence = y_prob[digit_predicted];
+//        return digit_predicted;
+//    }
 
 
     /*** Serialization ***/
