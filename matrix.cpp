@@ -66,7 +66,7 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
     result.clear();
     for (int r = 0; r < matrix.n_rows; ++r) {
         for (int c = 0; c < matrix.n_cols; ++c)
-            result[c] += matrix[r][c];
+            result.data[0][c] += matrix.data[r][c];
     }
 }
 
@@ -87,22 +87,22 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
 //
 //// matrix transposition
 void transpose(const Matrix& matrix, Matrix& transposed) {
-    for (int j=0; j<n_cols(matrix); j++) {
-        for (int i=0; i<n_rows(matrix); i++) {
-            transposed[j][i] = matrix[i][j];
+    for (int j=0; j < matrix.n_cols; j++) {
+        for (int i=0; i < matrix.n_rows; i++) {
+            transposed.data[j][i] = matrix.data[i][j];
         }
     }
 }
 
-//// element-wise log
-//template <class T>
-//vector<vector<T>> log(const vector<vector<T>>& matrix) {
-//    auto result = matrix;
-//    for (auto& row : result)
-//        for (auto& elem : row)
-//            elem = log(elem);
-//    return result;
-//}
+
+// element-wise log
+void log(const Matrix& matrix, Matrix& result) {
+    for (int i = 0; i < matrix.n_rows; ++i) {
+        for (int j = 0; j < matrix.n_cols; ++j) {
+            result.data[i][j] = log(matrix.data[i][j]);
+        }
+    }
+}
 //
 //// whole matrix sum
 //template <class T>
