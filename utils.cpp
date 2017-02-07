@@ -62,11 +62,11 @@ std::string string_format(const std::string fmt_str, ...) {
 
 
 // for 2 (and 5 classes) ~> {0 0 1 0 0}
-vector<double> make_one_hot(int value, int n_classes=10) {
-    vector<double> result(n_classes, 0);
-    result[value] = 1;
-    return result;
-}
+//vector<double> make_one_hot(int value, int n_classes=10) {
+//    vector<double> result(n_classes, 0);
+//    result[value] = 1;
+//    return result;
+//}
 
 // {0 0 1 0 0} ~> 2
 int from_one_hot(const vector<double>& v) {

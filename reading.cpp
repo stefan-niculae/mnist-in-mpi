@@ -1,9 +1,9 @@
 #pragma once
 
-#include <iostream>
 #include <string>
 #include <fstream>
 #include <sstream>
+#include <iostream>
 #include "matrix.cpp"
 #include "utils.cpp"
 
@@ -36,6 +36,7 @@ void read_from_csv(string filename, Matrix& images, Matrix& labels) {
         // Read each pixel
         for (int pixel_n = 0; pixel_n < images.n_cols; ++pixel_n) {
             line_stream >> images.data[image_n][pixel_n];
+            images.data[image_n][pixel_n] /= PIXEL_DIM;
             line_stream.ignore(); // skip comma after pixel value
         }
     }
@@ -46,8 +47,8 @@ void read_from_csv(string filename, Matrix& images, Matrix& labels) {
 
 void print_image(const Matrix& images, const int image_n) {
     for (int pixel_n = 0; pixel_n < IMAGE_SIDE * IMAGE_SIDE; ++pixel_n) {
-        if (i % IMAGE_SIDE == 0)
-            cout << endl;
+        if (pixel_n % IMAGE_SIDE == 0)
+            cout << endl << endl;
 
         if (images.data[image_n][pixel_n] == 0)
             cout << "  ";
