@@ -23,7 +23,7 @@ public:
         delete[] data;
     }
 
-    clear() {
+    void clear() {
         for (int i = 0; i < n_rows; ++i)
             for (int j = 0; j < n_cols; ++j)
                 data[i][j] = 0;
@@ -36,7 +36,7 @@ public:
 ostream& operator<<(ostream& os, const Matrix& matrix) {
     for (int i = 0; i < matrix.n_rows; ++i) {
         for (int j = 0; j < matrix.n_cols; ++j)
-            os << matrix[i][j] << ' ';
+            os << matrix.data[i][j] << ' ';
         os << endl;
     }
     return os;
@@ -44,7 +44,7 @@ ostream& operator<<(ostream& os, const Matrix& matrix) {
 istream& operator>>(istream& is, Matrix& matrix) {
     for (int i = 0; i < matrix.n_rows; ++i)
         for (int j = 0; j < matrix.n_cols; ++j)
-            is >> matrix[i][j];
+            is >> matrix.data[i][j];
     return is;
 }
 
@@ -54,10 +54,10 @@ istream& operator>>(istream& is, Matrix& matrix) {
 void add_to_each(Matrix& matrix, const Matrix& to_add) {
     if (matrix.n_cols != to_add.n_cols)
         throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
-                                                  "%d, %d", n_rows(matrix), n_rows(to_add)));
+                                                  "%d, %d", matrix.n_rows, matrix.n_rows));
     if (to_add.n_rows != 1)
         throw runtime_error(string_format("Add to each: vector to add has multiple rows: "
-                                                  "%d", n_cols(to_add)));
+                                                  "%d", to_add.n_rows));
 
     for (int r = 0; r < to_add.n_rows; ++r)
         for (int c = 0; c < matrix.n_cols; ++c)
@@ -98,7 +98,7 @@ void log(const Matrix& matrix, Matrix& result) {
 
 // whole matrix sum
 void sum(const Matrix& matrix, double result) {
-    double result = 0;
+    result = 0;
     for (int i = 0; i < matrix.n_rows ; ++i) {
         for (int j = 0; j < matrix.n_cols; ++j) {
             result += matrix.data[i][j];
@@ -107,15 +107,10 @@ void sum(const Matrix& matrix, double result) {
 }
 
 //
-//
-//
-//
-//
 ///*** Operators ***/
 //
 //// matrix addition
-//template <class T>
-//vector<vector<T>> operator+ (const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
+//void add (const Matrix& lhs, const vector<vector<T>>& rhs) {
 //    // If rhs is a row-vector, add it to each row of the lhs
 //    if (n_rows(rhs) == 1 && n_cols(rhs) == n_cols(lhs))
 //        return add_to_each(lhs, rhs);

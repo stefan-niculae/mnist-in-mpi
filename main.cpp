@@ -32,22 +32,32 @@ int predict(string pixels_string) {
 }
 
 int main(int argc, const char* argv[]) {
-    if (argc < 2) {
-        cout << "usage: mnist_in_mpi.out (train|predict)" << endl;
-        return 1;
-    }
+//    if (argc < 2) {
+//        cout << "usage: mnist_in_mpi.out (train|predict)" << endl;
+//        return 1;
+//    }
+//
+//    if (string(argv[1]) == "train") {
+//        train_and_save();
+//        return 0;
+//    }
+//
+//    if (string(argv[1]) == "predict") {
+//        if (argc < 3) {
+//            cout << "usage mnist_in_mpi.out predict <pixels>" << endl;
+//            return 1;
+//        }
+//        predict(argv[2]);
+//        return 0;
+//    }
 
-    if (string(argv[1]) == "train") {
-        train_and_save();
-        return 0;
-    }
 
-    if (string(argv[1]) == "predict") {
-        if (argc < 3) {
-            cout << "usage mnist_in_mpi.out predict <pixels>" << endl;
-            return 1;
-        }
-        predict(argv[2]);
-        return 0;
-    }
+    Matrix mat1(3, 4);
+    Matrix mat2(3, 4);
+
+
+
+
+
+    return 0;
 }
