@@ -33,6 +33,9 @@ public:
     }
 };
 
+void print_dimensions(const Matrix& m) {
+    cout << m.n_rows << " x " << m.n_cols << endl;
+}
 
 /*** IO ***/
 std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {

@@ -1,6 +1,6 @@
 #include <iostream>
 #include "reading.cpp"
-//#include "nn.cpp"
+#include "nn.cpp"
 #include "matrix.cpp"
 
 using namespace std;
@@ -52,10 +52,12 @@ int main(int argc, const char* argv[]) {
 //        return 0;
 //    }
 
-//    int n_samples = 250;
-//    Matrix images(n_samples, 784), labels(n_samples, 10);
-//    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/sample.csv"), images, labels);
-//    print_image(images, 0);
+    int n_samples = 250;
+    Matrix images(n_samples, 784), labels(n_samples, 10);
+    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/sample.csv"), images, labels);
+    NeuralNetwork net;
+    net.train(images, labels);
+
 
 //    Matrix m(4, 2);
 //    int k = 0;
