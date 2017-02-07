@@ -34,7 +34,6 @@ public:
 };
 
 
-
 /*** IO ***/
 std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
     for (int i = 0; i < matrix.n_rows; ++i) {
@@ -115,10 +114,6 @@ void sum(const Matrix& matrix, double result) {
 //
 //// matrix addition
 void add(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
-    // If rhs is a row-vector, add it to each row of the lhs
-//    if (rhs.n_rows == 1 && rhs.n_cols == lhs.n_cols)
-//        add_to_each(lhs, rhs, result);
-
     if ((lhs.n_rows != rhs.n_rows) || (lhs.n_cols != rhs.n_cols))
         throw runtime_error(string_format("Matrix addition: number of rows/cols is different: "
                                                   "lhs = (%d, %d), rhs = (%d, %d)",
@@ -165,19 +160,17 @@ void add_vect (const Matrix& matrix, const Matrix& vect, Matrix& result) {
         for (int j = 0; j < matrix.n_cols; ++j)
             result.data[i][j] = matrix.data[i][j] + vect.data[0][j];
 }
-//
-//// matrix-scalar multiplication
-//template <class T>
-//vector<vector<T>> operator* (double scalar, const vector<vector<T>>& matrix) {
-//    auto result = matrix;
-//    for (auto& row : result)
-//        for (auto& elem : row)
-//            elem *= scalar;
-//    return result;
-//}
-//
-//// TODO: faster method
-//// matrix multiplication
+
+// matrix-scalar multiplication
+void scalar_mult(double scalar, const Matrix& matrix, Matrix& result) {
+    for (int i = 0; i < matrix.n_rows; ++i) {
+        for (int j = 0; j < matrix.n_cols; ++j) {
+            result.data[i][j] = scalar * matrix.data[i][j];
+        }
+    }
+}
+
+// matrix multiplication
 void dot(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
     if (lhs.n_cols != rhs.n_rows)
         throw runtime_error(string_format("Dimensions do not agree for matrix multiplication: "
@@ -193,17 +186,14 @@ void dot(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
                 result.data[i][j] += lhs.data[i][k] * rhs.data[k][j];
 }
 
-//// element-wise matrix multiplication
-//template <class T>
-//vector<vector<T>> hadamard(const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
-//    if ((n_rows(lhs) != n_rows(rhs)) || n_cols(lhs) != n_cols(rhs))
-//        throw runtime_error(string_format("Matrix element-wise multiplication: number of rows/cols is different: "
-//                                                  "lhs = (%d, %d), rhs = (%d, %d)",
-//                                          n_rows(lhs), n_cols(lhs), n_rows(rhs), n_cols(rhs)));
-//
-//    auto result = lhs;
-//    for (int i = 0; i < n_rows(rhs); ++i)
-//        for (int j = 0; j < n_cols(rhs); ++j)
-//            result[i][j] *= rhs[i][j];
-//    return result;
-//}
+// element-wise matrix multiplication
+void hadamard (const Matrix& lhs, const Matrix& rhs, Matrix& result) {
+    if ((lhs.n_rows != rhs.n_rows) || (lhs.n_cols != rhs.n_cols))
+        throw runtime_error(string_format("Matrix addition: number of rows/cols is different: "
+                                                  "lhs = (%d, %d), rhs = (%d, %d)",
+                                          lhs.n_rows, lhs.n_cols, rhs.n_rows, rhs.n_cols));
+
+    for (int i = 0; i < rhs.n_rows; ++i)
+        for (int j = 0; j < rhs.n_cols; ++j)
+            result.data[i][j] = rhs.data[i][j] * lhs.data[i][j];
+}
