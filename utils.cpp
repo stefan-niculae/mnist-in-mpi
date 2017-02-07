@@ -28,37 +28,37 @@ std::string string_format(const std::string fmt_str, ...) {
     return std::string(formatted.get());
 }
 
-template <class T>
-ostream& operator<<(ostream& os, const vector<T>& v) {
-    for (const auto& x : v)
-        os << x << ' ';
-    return os;
-}
-
-template <class T>
-istream& operator>>(istream& is, vector<T>& v) {
-    string line;
-    getline(is, line);
-    istringstream ss(line);
-
-    T x;
-    while (ss >> x) // until end of line
-        v.push_back(x);
-
-    return is;
-}
-
-vector<double> pixels_from_string(const string& s) {
-    vector<double> v;
-    istringstream ss(s);
-    double x;
-    while (ss >> x) {
-        v.push_back(x);
-        if (ss.peek() == ',')
-            ss.ignore();
-    }
-    return v;
-}
+//template <class T>
+//ostream& operator<<(ostream& os, const vector<T>& v) {
+//    for (const auto& x : v)
+//        os << x << ' ';
+//    return os;
+//}
+//
+//template <class T>
+//istream& operator>>(istream& is, vector<T>& v) {
+//    string line;
+//    getline(is, line);
+//    istringstream ss(line);
+//
+//    T x;
+//    while (ss >> x) // until end of line
+//        v.push_back(x);
+//
+//    return is;
+//}
+//
+//vector<double> pixels_from_string(const string& s) {
+//    vector<double> v;
+//    istringstream ss(s);
+//    double x;
+//    while (ss >> x) {
+//        v.push_back(x);
+//        if (ss.peek() == ',')
+//            ss.ignore();
+//    }
+//    return v;
+//}
 
 
 // for 2 (and 5 classes) ~> {0 0 1 0 0}

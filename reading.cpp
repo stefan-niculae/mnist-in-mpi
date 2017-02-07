@@ -10,50 +10,50 @@
 using namespace std;
 
 const int PIXEL_DIM = 255;
+const int IMAGE_SIDE = 28;
 
-void read_data(string filename, Matrix& images, Matrix& labels) {
+void read_from_csv(string filename, Matrix& images, Matrix& labels) {
+    // images.n_rows indicates how many images to read from the csv
     ifstream file(filename);
 
     if (!file.is_open())
         throw runtime_error(string_format("Read MNIST data: could not open file: " + filename));
 
-    vector<int> label_values;
+    images.clear();
+    labels.clear();
+
+    int label_value;
     string line;
-    while (getline(file, line)) {
+    for (int image_n = 0; image_n < images.n_rows; ++image_n) {
+        getline(file, line);
         istringstream line_stream(line);
 
-        int label;
-        line_stream >> label;
-        label_values.push_back(label);
+        // Read label
+        line_stream >> label_value;
+        labels.data[image_n][label_value] = 1; // one-hot encoding
         line_stream.ignore(); // skip comma after label
 
-        vector<double> image;
-        int pixel;
-        while (line_stream >> pixel) {
-            image.push_back(double(pixel) / PIXEL_DIM);
+        // Read each pixel
+        for (int pixel_n = 0; pixel_n < images.n_cols; ++pixel_n) {
+            line_stream >> images.data[image_n][pixel_n];
             line_stream.ignore(); // skip comma after pixel value
         }
-
-        images.push_back(image);
     }
     file.close();
-
-    for (auto val : label_values)
-        labels.push_back(make_one_hot(val));
 
     cout << "Done reading from " + filename << endl;
 }
 
-void print_image(const vector<double>& pixels) {
-    for (int i = 0; i < 28 * 28; ++i) {
-        if (i > 0 && i % 28 == 0)
-            cout << endl << endl;
+void print_image(const Matrix& images, const int image_n) {
+    for (int pixel_n = 0; pixel_n < IMAGE_SIDE * IMAGE_SIDE; ++pixel_n) {
+        if (i % IMAGE_SIDE == 0)
+            cout << endl;
 
-        if (pixels[i] == 0)
+        if (images.data[image_n][pixel_n] == 0)
             cout << "  ";
         else
-            cout << int(pixels[i] * 100); // turns 0.25 into 25
+            cout << int(images.data[image_n][pixel_n] * 100);
         cout << ' ';
     }
-    cout << endl << endl;
+    cout << endl;
 }

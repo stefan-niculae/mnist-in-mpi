@@ -63,6 +63,14 @@ class NeuralNetwork {
     Matrix W;
     Matrix b;
 
+    Matrix Y_prob;
+    Matrix delta;
+    Matrix grad_W;
+    Matrix grad_b;
+    Matirx XW;
+    Matrix XWb;
+    Matrix softmaxed;
+
 public:
 
     NeuralNetwork(int n_classes=10, int data_dim=784)
@@ -80,6 +88,9 @@ public:
     double grad(Matrix X, Matrix Y,
                 Matrix &grad_W, Matrix &grad_b) {
         double n = n_rows(X);  // double instead of int so division works
+        mult(X, W, XW);
+        add(XW, b, XWb);
+        softmax(XWb, softmaxed);
 
         Matrix Y_prob = softmax(X * W + b); // add bias to each
         // Error at last layer
