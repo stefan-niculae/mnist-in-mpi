@@ -48,10 +48,6 @@ istream& operator>>(istream& is, Matrix& matrix) {
     return is;
 }
 
-
-
-
-
 /*** Operators ***/
 void add_to_each(Matrix& matrix, const Matrix& to_add) {
     if (matrix.n_cols != to_add.n_cols)
@@ -66,26 +62,24 @@ void add_to_each(Matrix& matrix, const Matrix& to_add) {
             matrix.data[r][c] += to_add.data[0][c];
 }
 
+void col_wise_sums(const Matrix& matrix, Matrix& result) {
+    result.clear();
+    for (int r = 0; r < matrix.n_rows; ++r) {
+        for (int c = 0; c < matrix.n_cols; ++c)
+            result[c] += matrix[r][c];
+    }
+}
 
 
-//template <class T>
-//vector<T> chunk(const vector<T>& m, int from, int to) {
+//Matrix chunk(const vector<T>& m, int from, int to) {
 //    if (from < 0)
 //        throw "From < 0";
 //    if (to > m.size()) to = m.size();
 //    return vector<T>(&m[from], &m[to]);
 //}
-//
-//template <class T>
-//vector<vector<T>> col_wise_sums(const vector<vector<T>>& matrix) {
-//    vector<T> sums(n_cols(matrix), 0.);
-//    for (int r = 0; r < n_rows(matrix); ++r)
-//        for (int c = 0; c < n_cols(matrix); ++c)
-//            sums[c] += matrix[r][c];
-//
-//    Matrix result = {sums}; // make it a 1xn matrix
-//    return result;
-//}
+
+
+
 //
 //
 //
