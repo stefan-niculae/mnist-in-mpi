@@ -140,7 +140,8 @@ void sub(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
             result.data[i][j] = rhs.data[i][j] - lhs.data[i][j];
 }
 
-void sub(Matrix& from, const Matrix& to_sub) {
+void sub_from(Matrix& from, const Matrix& to_sub) {
+    // from = from - to_sub
     if ((from.n_rows != to_sub.n_rows) || (from.n_cols != to_sub.n_cols))
         throw runtime_error(string_format("Matrix FROM subtraction: number of rows/cols is different: "
                                                   "from = (%d, %d), to_sub = (%d, %d)",
