@@ -114,9 +114,9 @@ void sum(const Matrix& matrix, double result) {
 ///*** Operators ***/
 //
 //// matrix addition
-void add (const Matrix& lhs, const Matrix& rhs, Matrix& result) {
+void add(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
     // If rhs is a row-vector, add it to each row of the lhs
-    if (rhs.n_rows == 1 && rhs.n_cols == lhs.n_cols)
+//    if (rhs.n_rows == 1 && rhs.n_cols == lhs.n_cols)
 //        add_to_each(lhs, rhs, result);
 
     if ((lhs.n_rows != rhs.n_rows) || (lhs.n_cols != rhs.n_cols))
@@ -128,6 +128,29 @@ void add (const Matrix& lhs, const Matrix& rhs, Matrix& result) {
         for (int j = 0; j < rhs.n_cols; ++j)
             result.data[i][j] = rhs.data[i][j] + lhs.data[i][j];
 }
+
+void sub(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
+    if ((lhs.n_rows != rhs.n_rows) || (lhs.n_cols != rhs.n_cols))
+        throw runtime_error(string_format("Matrix subtraction: number of rows/cols is different: "
+                                                  "lhs = (%d, %d), rhs = (%d, %d)",
+                                          lhs.n_rows, lhs.n_cols, rhs.n_rows, rhs.n_cols));
+
+    for (int i = 0; i < rhs.n_rows; ++i)
+        for (int j = 0; j < rhs.n_cols; ++j)
+            result.data[i][j] = rhs.data[i][j] - lhs.data[i][j];
+}
+
+void sub(Matrix& from, const Matrix& to_sub) {
+    if ((from.n_rows != to_sub.n_rows) || (from.n_cols != to_sub.n_cols))
+        throw runtime_error(string_format("Matrix FROM subtraction: number of rows/cols is different: "
+                                                  "from = (%d, %d), to_sub = (%d, %d)",
+                                          from.n_rows, from.n_cols, to_sub.n_rows, to_sub.n_cols));
+
+    for (int i = 0; i < from.n_rows; ++i)
+        for (int j = 0; j < from.n_cols; ++j)
+            from.data[i][j] -= to_sub.data[i][j];
+}
+
 
 // matrix - vector addition
 void add_vect (const Matrix& matrix, const Matrix& vect, Matrix& result) {
@@ -141,22 +164,6 @@ void add_vect (const Matrix& matrix, const Matrix& vect, Matrix& result) {
         for (int j = 0; j < matrix.n_cols; ++j)
             result.data[i][j] = matrix.data[i][j] + vect.data[0][j];
 }
-//
-//
-//// matrix subtraction
-//template <class T>
-//vector<vector<T>> operator- (const vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
-//    if ((n_rows(lhs) != n_rows(rhs)) || n_cols(lhs) != n_cols(rhs))
-//        throw runtime_error(string_format("Matrix subtraction: number of rows/cols is different: "
-//                                                  "lhs = (%d, %d), rhs = (%d, %d)",
-//                                          n_rows(lhs), n_cols(lhs), n_rows(rhs), n_cols(rhs)));
-//
-//    auto result = lhs;
-//    for (int i = 0; i < n_rows(rhs); ++i)
-//        for (int j = 0; j < n_cols(rhs); ++j)
-//            result[i][j] -= rhs[i][j];
-//    return result;
-//}
 //
 //// matrix-scalar multiplication
 //template <class T>
