@@ -13,7 +13,7 @@ public:
     const int n_elements;
     bool is_chunk = false;
 
-    Matrix(int n_rows,int n_cols):
+    Matrix(int n_rows,int n_cols) :
             n_rows(n_rows), n_cols(n_cols), n_elements(n_rows * n_cols) {
 
         double* mem = (double*)malloc(n_rows * n_cols * sizeof(double));
