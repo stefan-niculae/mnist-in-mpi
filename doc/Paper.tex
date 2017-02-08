@@ -195,6 +195,9 @@ Naturally, there appears a running time -- model accuracy trade-off. Updating th
 In contrast, a greater batch size produces better parallelization performance. If each worker is assigned a single image, the communication cost of transferring gradient and weight matrices far outweighs the time taken to compute them. Efficiency improvement is present only when the time taken to transfer the results is lower than the time taken to compute them. Greater batch sizes incur more infrequent updates thus reducing the communication overhead.
 
 The trade-off is now clear: a lower batch size leads to greater accuracy while a greater batch size causes faster training.
+\\
+
+Another 
 
 TODO: talk about matrix multiplication overhead
 
@@ -240,7 +243,9 @@ TODO: picture of GUI
 \section{Implementation}
 After going through the high-level overview of the project, we now delve into implementation details.
 
-\paragraph{Predictive model} The core of the project is implemented in C++. This includes the neural network training and prediction. Data is maintained in memory using vectors from the standard library.
+\paragraph{Predictive model} The core of the project is implemented in C++. This includes the neural network training and prediction. Model weights and image samples are kept in memory using 2D-arrays. 
+
+Matrices build as vector of vectors (using the standard library implementation), while providing greater flexibility, cannot be sent efficiently using MPI. MPI deals with contiguous blocks of memory, while STL vectors are, by definition, dynamic. A workaround this is to send a matrix row-by-row. Our initial implementation used this method but unfortunately it provides little to no increase in parallelization performance and caused a general-rewrite.
 
 \paragraph{Graphical Interface} The GUI is implemented as a web page in HTML, with a canvas for the input box.
 The drawing is facilitated by the Sketch library \cite{sketch}. Interactivity and picture resizing is done through JavaScript.
