@@ -139,7 +139,7 @@ void sub(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
 
     for (int i = 0; i < rhs.n_rows; ++i)
         for (int j = 0; j < rhs.n_cols; ++j)
-            result.data[i][j] = rhs.data[i][j] - lhs.data[i][j];
+            result.data[i][j] = lhs.data[i][j] - rhs.data[i][j];
 }
 
 void add_to(Matrix& to, const Matrix& from) {
