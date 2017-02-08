@@ -133,8 +133,8 @@ TODO
 \paragraph{Evaluation}
 TODO
 
+\begin{center}
 \begin{tikzpicture}
-\centering
 \begin{axis} [
   title={Training performance},
   xlabel={Epoch},
@@ -144,20 +144,26 @@ TODO
   xtick={0,25,50,75,100},
   ytick={0,25,50,75,100},
   legend pos=south east,
+  axis line style={black!65, line width=.1pt}, % thinner frame border
+  legend style={draw=black!50, line width=.1pt}, % thinner frame border
+  every x tick/.style={white}, % hide x ticks (make them white)
+  every y tick/.style={white}, % hide y ticks (make them white)
+  every axis plot/.append style={thick},
 ]
 
 \addplot[]
   coordinates {
   (0,25)(25,65)(50,90)(100,95)
   };
-\addplot[dashed]
+\addplot[dash pattern=on 6pt off 4pt]
   coordinates {
   (0,25)(25,50)(50,80)(100,90)
   };
   
-\legend{train set, test set}
+\legend{train, test}
 \end{axis}
 \end{tikzpicture}
+\end{center}
 
 
 
@@ -168,6 +174,33 @@ Parallelism is needed in the training phase of the model, as prediction happens 
 TODO: talk about matrix multiplication overhead
 
 TODO: graph of train time vs nr of processors
+
+\begin{center}
+\begin{tikzpicture}
+\begin{axis}[
+  title={Time performance},
+  xlabel=Processes,
+  ylabel=Seconds,
+  bar width=.8cm,
+  axis line style={black!65, line width=.1pt}, % thinner border
+  symbolic x coords={1,2,4,6,8,12,16}, % equidistant bars
+  every x tick/.style={white}, % hide x ticks (make them white)
+  every y tick/.style={line width=.1pt, draw=gray!10}, % y ticks same color as grid
+  ymajorgrids=true, % show horizontal grid lines
+  grid style={line width=.1pt, draw=gray!10}, % gray grid lines
+  ]
+  \addplot[ybar, black!40, fill=black!20] coordinates {
+      (1,8) 
+      (2,5)
+      (4,4) 
+      (6,3) 
+      (8,2.5) 
+      (12,2) 
+      (16,1.5)    
+      };
+\end{axis}
+\end{tikzpicture}
+\end{center}
 
 
 
