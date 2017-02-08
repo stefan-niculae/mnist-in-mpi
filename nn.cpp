@@ -156,8 +156,8 @@ public:
             // TODO: add early stopping
             // Compute accuracy after each epoch
             acc = accuracy(predict(X), Y_labels);
-            cout << "accuracy: " << acc * 100 << "%";
-            accuracy_history.push_back(acc) << endl;
+            cout << "accuracy: " << acc * 100 << "%" << endl;
+            accuracy_history.push_back(acc);
         }
 
     }
