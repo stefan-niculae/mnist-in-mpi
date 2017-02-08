@@ -17,6 +17,7 @@ using namespace std;
 const int MASTER = 0;
 const int GRAD_W_TAG    = 0;
 const int GRAD_B_TAG    = 1;
+const int COST_TAG      = 2;
 
 
 
@@ -39,12 +40,14 @@ void softmax(const Matrix& matrix, Matrix& result) {
     }
 }
 
-// TODO
-//double cross_entropy(const Matrix& Y, const Matrix& Y_prob) {
-//    // Cost function
-//    Matrix result = hadamard(Y, log(Y_prob));
-//    return 1/double(n_rows(Y)) * sum(result);
-//}
+double cross_entropy(const Matrix& Y, const Matrix& Y_prob) {
+    // Cost function
+    Matrix logY_prob(Y.n_rows, Y.n_cols);
+    Matrix result(Y.n_rows, Y.n_cols);
+    log(Y_prob, logY_prob);
+    hadamard(Y, logY_prob, result);
+    return -1/double(Y.n_rows) * sum(result);
+}
 
 void random_init(Matrix& W, double mean=0., double std=1.) {
     default_random_engine generator;
@@ -60,12 +63,12 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    const int N_SAMPLES = 60000;
-    const int N_WORKERS = 6; // how many processes compute gradient in parallel
+    const int N_SAMPLES = 10000;
+    const int N_WORKERS = 5; // how many processes compute gradient in parallel
 
     const int N_CLASSES = 10; // 10 digits from 0 to 9
     const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
-    const int BATCH_SIZE = 600; // after how many pictures the weights are updated
+    const int BATCH_SIZE = 500; // after how many pictures the weights are updated
     const int CHUNK_SIZE = BATCH_SIZE / N_WORKERS; // how many rows each worker gets
 
     // X dimensions: N_SAMPLES x DATA_DIM
@@ -111,7 +114,7 @@ public:
 //        this->load(path);
 //    }
 
-    void grad() {
+    double grad() {
         dot(chunk_X, W, cXW); // cXW = X * W
         add_to_each(cXW, b, cXWb); // cXWb = X * W + b
         softmax(cXWb, cY_prob); // cY_prob = softmax(X * W + b)
@@ -127,7 +130,7 @@ public:
         scalar_mult(contribution, delta_sums, partial_grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
         // TODO maybe
-//        return cross_entropy(Y, cY_prob); // cost
+        return cross_entropy(chunk_Y, cY_prob); // cost
     }
 
     void train(const Matrix& X, const Matrix& Y,
@@ -136,7 +139,7 @@ public:
                bool verbose=true) {
         if (N_SAMPLES != X.n_rows) throw runtime_error("bad N_SAMPLES");
 
-        double cost, acc;
+        double total_cost=0, local_cost=0, acc;
         vector<int> Y_labels = labels_from_one_hot(Y); // {5, 2, 9, ... }
         std::chrono::time_point<std::chrono::system_clock> start_time, end_time;
         MPI_Init(NULL, NULL);
@@ -161,6 +164,7 @@ public:
                     // clear summed from previous batch
                     total_grad_W.clear();
                     total_grad_b.clear();
+                    total_cost = 0;
 
                     // Get partial gradients from each worker
                     for (int worker = 1; worker <= N_WORKERS; ++worker) {
@@ -169,9 +173,12 @@ public:
                                  worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         MPI_Recv(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE,
                                  worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Recv(&local_cost, 1, MPI_DOUBLE,
+                                 worker, COST_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         // Sum partial gradients
                         add_to(total_grad_W, partial_grad_W);
                         add_to(total_grad_b, partial_grad_b);
+                        total_cost += local_cost;
                     }
 
                     // After receive
@@ -181,7 +188,7 @@ public:
                     sub_from(W, lr_grad_W); // W = W - lr * grad_W
                     sub_from(b, lr_grad_b); // b = b - lr * grad_b
 
-//                cost_history.push_back(cost); // TODO
+                    cost_history.push_back(total_cost); // TODO
                 }
 
 
@@ -191,13 +198,14 @@ public:
 //                    cout << "worker #" << rank << ": batch_start " << batch_start << ", start_index = " << start_index << endl;
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
-                    grad(); // grad_W and grad_b are now filled with result
-
+                    local_cost = grad(); // grad_W and grad_b are now filled with result
                     // Send partial gradients to master
                     MPI_Send(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE,
                              MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
                     MPI_Send(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE,
                             MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
+                    MPI_Send(&local_cost, 1, MPI_DOUBLE,
+                             MASTER, COST_TAG, MPI_COMM_WORLD);
                 }
 
                 // Send back updated W and b to all workers
@@ -217,7 +225,7 @@ public:
                 // Compute accuracy after each epoch
                 acc = accuracy(predict(X), Y_labels);
                 accuracy_history.push_back(acc);
-                cout << "accuracy: " << acc * 100 << "%" << endl;
+                cout << "accuracy: " << acc * 100 << "%" <<", cost:" << total_cost << endl;
             }
         }
 

@@ -107,13 +107,14 @@ void log(const Matrix& matrix, Matrix& result) {
 }
 
 // whole matrix sum
-void sum(const Matrix& matrix, double result) {
-    result = 0;
+double sum(const Matrix& matrix) {
+    double result = 0;
     for (int i = 0; i < matrix.n_rows ; ++i) {
         for (int j = 0; j < matrix.n_cols; ++j) {
             result += matrix.data[i][j];
         }
     }
+    return result;
 }
 
 //
