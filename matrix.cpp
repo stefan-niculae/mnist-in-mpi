@@ -66,7 +66,7 @@ void add_to_each(Matrix& matrix, const Matrix& to_add, Matrix& result) {
 
     for (int r = 0; r < to_add.n_rows; ++r)
         for (int c = 0; c < matrix.n_cols; ++c)
-            result.data[r][c] += to_add.data[0][c];
+            result.data[r][c] = matrix.data[r][c] + to_add.data[0][c];
 }
 
 void col_wise_sums(const Matrix& matrix, Matrix& result) {
