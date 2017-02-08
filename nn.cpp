@@ -4,7 +4,8 @@
 #include <iostream>
 #include <fstream>
 #include "matrix.cpp"
-//#include "evaluate.cpp" // TODO
+#include "evaluate.cpp"
+#include <vector>
 
 
 using namespace std;
@@ -128,11 +129,11 @@ public:
     }
 
     void train(const Matrix& X, const Matrix& Y,
-//               vector<double>& cost_history, vector<double>& accuracy_history,
+               vector<double>& cost_history, vector<double>& accuracy_history,
                int n_epochs=10, int batch_size=100, double lr=0.1,
                bool verbose=true) {
-//        double cost, acc;
-//        auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
+        double cost, acc;
+        vector<int> Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
 
         random_init(W);
 //        cout << "after init W" << endl;
@@ -164,16 +165,18 @@ public:
 
             // TODO: add early stopping
             // Compute accuracy after each epoch
-//            acc = accuracy(predict(X), Y_labels); // TODO
-//            accuracy_history.push_back(acc);
+            acc = accuracy(predict(X), Y_labels);
+            accuracy_history.push_back(acc);
         }
 
     }
 
-//    vector<int> predict(const Matrix& X) {
-//        Matrix Y_prob = softmax(X * W + b);
-//        return argmax_matrix(Y_prob);
-//    }
+    vector<int> predict(const Matrix& X) {
+        dot(X, W, XW); // XW = X * W
+        add_to_each(XW, b, XWb); // XWb = X * W + b
+        softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
+        return argmax_matrix(Y_prob);
+    }
 //
 //    int predict_one(const vector<double>& pixels, double& confidence) {
 //        // TODO: refactor to use .predict()

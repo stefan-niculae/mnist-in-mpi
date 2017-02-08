@@ -58,11 +58,16 @@ int main(int argc, const char* argv[]) {
 //    double* w = v+2;
 //    cout << w[0];
 
-    int n_samples = 250;
+    int n_samples = 60000;
     Matrix images(n_samples, 784), labels(n_samples, 10);
-    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/sample.csv"), images, labels);
+    read_from_csv(string("/home/ionut/workspace/ppc/mnist-in-mpi/data/sample.csv"), images, labels);
     NeuralNetwork net;
-    net.train(images, labels);
+    vector<double> cost_history, acc_history;
+    net.train(images, labels, cost_history,acc_history);
+    for (int i = 0; i < acc_history.size(); ++i) {
+        cout << acc_history[i] << endl;
+
+    }
 
 
 //    Matrix m(4, 2);

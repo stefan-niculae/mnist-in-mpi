@@ -19,21 +19,21 @@ double accuracy(const vector<int>& y_true, const vector<int>& y_pred) {
 // row-wise from_one_hot
 vector<int> from_one_hot_matrix(const Matrix& matrix) {
     vector<int> result;
-    result.reserve(n_rows(matrix));
+    result.reserve(matrix.n_rows);
 
-    for (const auto& row : matrix)
-        result.push_back(from_one_hot(row));
-
+    for (int i = 0; i < matrix.n_rows; ++i) {
+        result.push_back(from_one_hot(matrix.data[i], matrix.n_cols));
+    }
     return result;
 }
 
 // row-wise argmax
 vector<int> argmax_matrix(const Matrix& matrix) {
     vector<int> result;
-    result.reserve(n_rows(matrix));
+    result.reserve(matrix.n_rows);
 
-    for (const auto& row : matrix)
-        result.push_back(argmax(row));
-
+    for (int i = 0; i < matrix.n_rows; ++i) {
+        result.push_back(argmax(matrix.data[i], matrix.n_cols));
+    }
     return result;
 }
