@@ -67,9 +67,9 @@ class NeuralNetwork {
     Matrix chunk_X = Matrix(CHUNK_SIZE, DATA_DIM);
     Matrix chunk_Y = Matrix(CHUNK_SIZE, N_CLASSES);
     // chunk sized
-        Matrix XW = Matrix(CHUNK_SIZE, N_CLASSES); // chunk_X * W ie (CHUNK_SIZE, DATA_DIM) * (DATA_DIM, N_CLASSES)
-        Matrix XWb = Matrix(CHUNK_SIZE, N_CLASSES);
-        Matrix Y_prob = Matrix(CHUNK_SIZE, N_CLASSES);
+        Matrix cXW = Matrix(CHUNK_SIZE, N_CLASSES); // chunk_X * W ie (CHUNK_SIZE, DATA_DIM) * (DATA_DIM, N_CLASSES)
+        Matrix cXWb = Matrix(CHUNK_SIZE, N_CLASSES);
+        Matrix cY_prob = Matrix(CHUNK_SIZE, N_CLASSES);
         Matrix delta = Matrix(CHUNK_SIZE, N_CLASSES);
 
         Matrix trX = Matrix(DATA_DIM, CHUNK_SIZE); // transpose CHUNK_SIZE, DATA_DIM
@@ -83,6 +83,11 @@ class NeuralNetwork {
     Matrix grad_W = Matrix(DATA_DIM, N_CLASSES); // like W
     Matrix grad_b = Matrix(1, N_CLASSES); // like b
 
+    // for prediction, on entire dataset
+    Matrix XW = Matrix(N_SAMPLES, N_CLASSES);
+    Matrix XWb = Matrix(N_SAMPLES, N_CLASSES);
+    Matrix Y_prob = Matrix(N_SAMPLES, N_CLASSES);
+
 
 public:
 
@@ -95,7 +100,7 @@ public:
     void grad() {
 //        print_dimensions(chunk_X);
 //        print_dimensions(W);
-//        print_dimensions(XW);
+//        print_dimensions(cXW);
 //        cout << "first elem of chunk x = " << chunk_X.data[0][0] << endl;
 //        for (int i = 0; i < chunk_X.n_rows; ++i) {
 //            for (int j = 0; j < chunk_X.n_cols; ++j) {
@@ -104,13 +109,13 @@ public:
 //            }
 //            cout << endl;
 //        }
-        dot(chunk_X, W, XW); // XW = X * W
+        dot(chunk_X, W, cXW); // cXW = X * W
 //        cout << "after dot1\n";
-        add_to_each(XW, b, XWb); // XWb = X * W + b
+        add_to_each(cXW, b, cXWb); // cXWb = X * W + b
 //        cout << "after add_to_each/**/\n";
-        softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
+        softmax(cXWb, cY_prob); // cY_prob = softmax(X * W + b)
 //        cout << "after softmax\n";
-        sub(Y_prob, chunk_Y, delta); // delta = Y_prob - Y
+        sub(cY_prob, chunk_Y, delta); // delta = cY_prob - Y
 //        cout << "after sub1\n";
 
         double contribution = 1/double(CHUNK_SIZE);
@@ -125,7 +130,7 @@ public:
         scalar_mult(contribution, delta_sums, grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
         // TODO maybe
-//        return cross_entropy(Y, Y_prob); // cost
+//        return cross_entropy(Y, cY_prob); // cost
     }
 
     void train(const Matrix& X, const Matrix& Y,
@@ -172,9 +177,13 @@ public:
     }
 
     vector<int> predict(const Matrix& X) {
+//        print_dimensions(X);
+//        print_dimensions(W);
+//        print_dimensions(XW);
         dot(X, W, XW); // XW = X * W
         add_to_each(XW, b, XWb); // XWb = X * W + b
         softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
+        cout << "here" << endl;
         return argmax_matrix(Y_prob);
     }
 //
