@@ -10,6 +10,7 @@
   \pgfplotsset{width=10cm,compat=1.9} % plots settings
   \usepgfplotslibrary{external}
   \tikzexternalize
+\usepackage{todonotes}
 
 
 
@@ -23,6 +24,10 @@
   \cfoot[]{\pagemark} % footer
   \setheadsepline[122mm]{0.3mm}
 
+
+% floor operator
+\newcommand{\floor}[1]{\lfloor {#1} \rfloor}
+\newcommand{\TODO}[1]{\noindent \textbf{\textcolor{red}{TODO: #1}}}
 
 
 \begin{document}
@@ -46,7 +51,7 @@
 
 \vspace{5cm}
 \begin{abstract}
-TODO: rewrite when paper is done, talk about each section
+\TODO{rewrite when paper is done, talk about each section}
 
 We implement a neural network to classify handwritten digits. The training is done in parallel, using MPI. We provide a comparison for model hyper-parameters and for training time vs number of processes. It achieves great accuracy and fast training time. An interactive demo is also presented
 \end{abstract}
@@ -60,11 +65,12 @@ We implement a neural network to classify handwritten digits. The training is do
 
 
 \newpage
-TODO: introduction?
+\TODO{introduction?}
 
 \section{Problem statement}
 \label{sec:problem}
 Given a picture of a handwritten digit, label it accordingly 0 - 9.
+\TODO{more here}
 
 \section{Dataset}
 \label{sec:dataset}
@@ -128,12 +134,14 @@ Where $\eta$ is the momentum parameter. This helps with stability in late epochs
 \paragraph{Training} We employ gradient-descent on mini-batches. Early-stopping prevents the model from further learning when performance on the validation split starts decreasing. Random sampling averts cycles when iterating through the dataset.
 
 \paragraph{Prediction}
-TODO
+\TODO{explain prediction?}
 
 \paragraph{Evaluation}
 Model performance is measured on a separate testing set using the accuracy metric -- ie: the percentage of images correctly classified.
 
-TODO
+\TODO{more about evaluation?}
+
+\noindent The following chart illustrates model evolution, both on the test and on the training set, after each pass through the dataset.
 
 \begin{center}
 \begin{tikzpicture}
@@ -166,6 +174,8 @@ TODO
 \end{axis}
 \end{tikzpicture}
 \end{center}
+
+\TODO{comment on chart}
 
 
 
@@ -200,6 +210,8 @@ The trade-off is now clear: a lower batch size leads to greater accuracy while a
 
 Another approach would be to let the algorithm run sequentially and parallelize only the matrix multiplication operation. In light of the previously presented considerations, we can conclude that this would be grossly inefficient. The transfer overhead is much higher than the benefit gained by splitting the problem.
 
+The following chart illustrates the improvement brought by parallelization on one pass through the data:
+
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
@@ -227,13 +239,27 @@ Another approach would be to let the algorithm run sequentially and parallelize 
 \end{tikzpicture}
 \end{center}
 
-
+\TODO{comment on chart}
 
 \newpage
 \section{Graphical Interface}
-TODO: picture of resizing
+The user is presented with a blank box in which to draw a digit to be recognized. Upon request, the prediction along with the model's confidence in it is displayed. 
 
-TODO: picture of GUI
+\missingfigure[figcolor=white]{GUI}
+
+\noindent Since the model was trained on $28 \times 28$ images, we need to pass the input in the same format. On today's screens, an input box of $28 \times 28$ pixels would look comically small. The raw input must be resized accordingly.
+
+The simplest down-sizing method is taking each block of pixels in the original image and averaging it to form a single pixel in the resulting image. For simplicity, we assume square images and pixels with only one channel -- grayscale. Eg: an image with $n^2$ original pixels is condensed to $s^2$ pixels, meaning a factor of $f=\frac{n}{s}$. That means each of the $s^2$ pixels is a sum of a $f \times f$ block divided by $f^2$.
+
+The trouble appears with encoding the image -- both the raw image and the model's inputs are in array form instead of a matrix. Ie: the pixels are all placed one after another starting from the top left corner.
+
+\missingfigure[figcolor=white]{resizing example pdf}
+The transformation can be computed by \textit{compacting} the columns:
+$\sum_i Orig_i$ for column at index $\floor{\frac{i}{f}}$. Then for rows: $\sum_i Col_i$ for pixel at index $(i \bmod s) + \floor{\frac{i}{s \times f}}$. Where $Orig$ denotes the the original image $Col$ the column-wise averages. 
+
+
+
+
 
 
 
@@ -245,7 +271,7 @@ After going through the high-level overview of the project, we now delve into im
 
 Matrices build as vector of vectors (using the standard library implementation), while providing greater flexibility, cannot be sent efficiently using MPI. MPI deals with contiguous blocks of memory, while STL vectors are, by definition, dynamic. A work-around for this is to send a matrix row-by-row. Our initial implementation used this method but unfortunately it provides little to no increase in parallelization performance and caused a general-rewrite. 
 
-The most expensive matrix operations are dot products and exponentiation. For matrix multiplication, we explored the Strassen algorithm, $O(n^{2.8})$, and the Coppersmith–Winograd algorithm, $O(n^{2.37})$. Although they achieve high asymptotic performance, hidden constants make them impractical in our case. We went with the Naive, $\Theta(n^3)$, algorithm with the $ikj$ optimization.
+The most expensive matrix operations are dot products and exponentiation. For matrix multiplication, we explored the Strassen algorithm, $O(n^{2.8})$, and the Coppersmith–Winograd algorithm, $O(n^{2.37})$. Although they achieve high asymptotic performance, hidden constants make them impractical in our case. We went with the Naive, $\Theta(n^3)$, algorithm with the $ikj$ optimization. For exponentiation, we rely on STL's implementation, although this can be further optimized.
 
 \paragraph{Graphical Interface} The GUI is implemented as a web page in HTML, with a canvas for the input box.
 The drawing is facilitated by the Sketch library \cite{sketch}. Interactivity and picture resizing is done through JavaScript.
