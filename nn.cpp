@@ -60,12 +60,12 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    const int N_SAMPLES = 10000;
-    const int N_WORKERS = 1; // how many processes compute gradient in parallel
+    const int N_SAMPLES = 60000;
+    const int N_WORKERS = 6; // how many processes compute gradient in parallel
 
     const int N_CLASSES = 10; // 10 digits from 0 to 9
     const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
-    const int BATCH_SIZE = 1000; // after how many pictures the weights are updated
+    const int BATCH_SIZE = 600; // after how many pictures the weights are updated
     const int CHUNK_SIZE = BATCH_SIZE / N_WORKERS; // how many rows each worker gets
 
     // X dimensions: N_SAMPLES x DATA_DIM
@@ -132,7 +132,7 @@ public:
 
     void train(const Matrix& X, const Matrix& Y,
                vector<double>& cost_history, vector<double>& accuracy_history,
-               int n_epochs=100, double lr=0.5,
+               int n_epochs=100, double lr=0.1,
                bool verbose=true) {
         if (N_SAMPLES != X.n_rows) throw runtime_error("bad N_SAMPLES");
 
@@ -151,7 +151,7 @@ public:
 
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
             if (rank == MASTER) {
-//                cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
+                cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
                 start_time = std::chrono::system_clock::now();
             }
 
@@ -164,7 +164,7 @@ public:
 
                     // Get partial gradients from each worker
                     for (int worker = 1; worker <= N_WORKERS; ++worker) {
-                        cout << "master: waiting for worker #" << worker << " in epoch " << epoch << endl;
+//                        cout << "master: waiting for worker #" << worker << " in epoch " << epoch << endl;
                         MPI_Recv(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE,
                                  worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         MPI_Recv(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE,
@@ -188,7 +188,7 @@ public:
                 if (rank != MASTER) { // worker
                     // TODO? make random batch generator
                     start_index = batch_start + (rank - 1) * CHUNK_SIZE;
-                    cout << "worker #" << rank << ": batch_start " << batch_start << ", start_index = " << start_index << endl;
+//                    cout << "worker #" << rank << ": batch_start " << batch_start << ", start_index = " << start_index << endl;
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
                     grad(); // grad_W and grad_b are now filled with result
@@ -209,15 +209,16 @@ public:
             if (rank == MASTER) {
                 end_time = std::chrono::system_clock::now();
                 std::chrono::duration<double> elapsed_seconds = end_time - start_time;
-//                cout << " done in " << elapsed_seconds.count() << "s, " << flush;
+                cout << " done in " << elapsed_seconds.count() << "s, " << flush;
             }
 
-            // TODO: add early stopping
-            // Compute accuracy after each epoch
-            acc = accuracy(predict(X), Y_labels);
-            accuracy_history.push_back(acc);
-            if (rank == MASTER)
-                cout << "Accuracy: " << acc * 100 << "%" << endl;
+            if (rank == MASTER) {
+                // TODO: add early stopping
+                // Compute accuracy after each epoch
+                acc = accuracy(predict(X), Y_labels);
+                accuracy_history.push_back(acc);
+                cout << "accuracy: " << acc * 100 << "%" << endl;
+            }
         }
 
         MPI_Finalize();
