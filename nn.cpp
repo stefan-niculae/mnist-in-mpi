@@ -9,6 +9,7 @@
 #include <chrono> // stopwatch
 #include "mpi.h"
 #include <utility> // pair
+#include <stdlib.h>
 
 
 using namespace std;
@@ -61,8 +62,9 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
             W.data[i][j] = distribution(generator);
 }
 
-
-
+inline int rand_int(int inf_bound, int sup_bound) {
+    return inf_bound + (rand() % sup_bound);
+}
 
 class NeuralNetwork {
 
@@ -115,7 +117,7 @@ public:
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
         const int n_classes = Y.n_cols;
-
+        double lr_anneal = lr;
         // MPI
         int rank, n_processes;
         MPI_Init(NULL, NULL);
@@ -161,6 +163,9 @@ public:
                 cout << string_format("Epoch %d/%d", epoch, n_epochs) << flush;
                 start_time = chrono::system_clock::now();
             }
+            // learning rate anneal
+            if (epoch % (n_epochs/3) == 0)
+                lr_anneal /= 2.;
 
             for (int batch_start = 0; batch_start < X.n_rows; batch_start += batch_size) {
                 if (rank == MASTER) {
@@ -182,9 +187,9 @@ public:
                         if (compute_cost) total_cost += partial_cost;
                     }
 
-                    // After receive
-                    scalar_mult(lr, total_grad_W, lr_grad_W);                     // TODO? regularization
-                    scalar_mult(lr, total_grad_b, lr_grad_b);
+                    //After receive
+                    scalar_mult(lr_anneal, total_grad_W, lr_grad_W);                     // TODO? regularization
+                    scalar_mult(lr_anneal, total_grad_b, lr_grad_b);
                     sub_from(W, lr_grad_W); // W = W - lr * grad_W
                     sub_from(b, lr_grad_b); // b = b - lr * grad_b
 
@@ -193,7 +198,8 @@ public:
 
 
                 if (rank != MASTER) { // worker
-                    start_index = batch_start + (rank - 1) * chunk_size;                    // TODO? make random batch generator
+                     start_index = batch_start + (rank - 1) * chunk_size;                    // TODO? make random batch generator
+                    start_index = rand_int(0, n_samples - chunk_size - 1);
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
                     partial_cost = grad(chunk_X, chunk_Y,
