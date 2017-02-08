@@ -61,7 +61,7 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 class NeuralNetwork {
 
     const int N_SAMPLES = 250;
-    const int N_WORKERS = 2; // how many processes compute gradient in parallel
+    const int N_WORKERS = 1; // how many processes compute gradient in parallel
 
     const int N_CLASSES = 10; // 10 digits from 0 to 9
     const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
@@ -165,48 +165,49 @@ public:
 
                     // Get partial gradients from each worker
                     for (int worker = 1; worker <= N_WORKERS; ++worker) {
-//                        cout << "master: waiting for worker #" << worker << " in epoch " << epoch << endl;
+//                        cout << partial_grad_W.data[0] << " " << &(partial_grad_W.data[0][0]) << endl;
+                        cout << "master: waiting for worker #" << worker << " in epoch " << epoch << endl;
                         cout << ">>>>>master: epoch " << epoch << ", batch_start " << batch_start << ", worker #" << worker <<  endl;
-                        MPI_Recv(&(partial_grad_W.data[0][0]), partial_grad_W.n_elements, MPI_DOUBLE, worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                        MPI_Recv(&(partial_grad_b.data[0][0]), partial_grad_b.n_elements, MPI_DOUBLE, worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//                        cout << "here" << endl;
-//                        cout << partial_grad_b.data[0][0] << endl;
+                        MPI_Recv(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE,
+                                 worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Recv(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE,
+                                 worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        cout << "master: After Recv for worker #" << worker << " in epoch " << epoch << endl;
+                        // Sum partial gradients
+                        add_to(total_grad_W, partial_grad_W);
+                        add_to(total_grad_b, partial_grad_b);
                     }
 
-//                    cout << ">>>>>>>>>>>>>>>master before"<< endl;
-                    add_to(total_grad_W, partial_grad_W);
-                    add_to(total_grad_b, partial_grad_b);
-
-                    // After receiving all the partial gradients
+                    // After receivtake_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     // TODO? regularization
                     scalar_mult(lr, total_grad_W, lr_grad_W); // TODO!!! minus here!?
                     scalar_mult(lr, total_grad_b, lr_grad_b);
-                    add_to(W, lr_grad_W); // W = W - lr * grad_W
-                    add_to(b, lr_grad_b); // b = b - lr * grad_b
+                    sub_from(W, lr_grad_W); // W = W - lr * grad_W
+                    sub_from(b, lr_grad_b); // b = b - lr * grad_b
 
-                    // Send back updated W and b to all workers
-                    MPI_Bcast(&(W.data[0][0]), W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-                    MPI_Bcast(&(b.data[0][0]), b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+
+
 //                cost_history.push_back(cost); // TODO
                 }
 
+//                // Send back updated W and b to all workers
+//                MPI_Bcast(W.data[0], W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+//                MPI_Bcast(b.data[0], b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
 
                 if (rank != MASTER) { // worker
                     // TODO? make random batch generator
                     start_index = batch_start + (rank - 1) * CHUNK_SIZE;
                     cout << "worker #" << rank << ": batch_start " << batch_start << ", start_index = " << start_index << endl;
-                    take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
-                    take_chunk(Y, start_index, chunk_Y);
+//                    take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
+//                    take_chunk(Y, start_index, chunk_Y);
                     grad(); // grad_W and grad_b are now filled with result
 
                     // Send partial gradients to master
-                    MPI_Send(&(partial_grad_W.data[0][0]), partial_grad_W.n_elements, MPI_DOUBLE, MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
-                    MPI_Send(&(partial_grad_b.data[0][0]), partial_grad_b.n_elements, MPI_DOUBLE, MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
-
-                    // Receive broadcasted W and b matrices
-                    MPI_Bcast(&(b.data[0][0]), b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-                    MPI_Bcast(&(W.data[0][0]), W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-                    cout << "worker #" << rank << " here" << endl;
+                    MPI_Send(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE,
+                             MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
+                    MPI_Send(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE,
+                            MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
+                    cout << "worker #" << rank << " after Send" << endl;
                 }
 
             }
@@ -225,6 +226,7 @@ public:
 //                cout << "accuracy: " << acc * 100 << "%" << endl;
         }
 
+        MPI_Finalize();
     }
 
     vector<int> predict(const Matrix& X) {

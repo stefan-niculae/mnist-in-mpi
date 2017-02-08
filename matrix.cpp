@@ -141,11 +141,22 @@ void sub(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
         for (int j = 0; j < rhs.n_cols; ++j)
             result.data[i][j] = lhs.data[i][j] - rhs.data[i][j];
 }
+void sub_from(Matrix& to, const Matrix& from) {
+    // to = to + from
+    if ((to.n_rows != from.n_rows) || (to.n_cols != from.n_cols))
+        throw runtime_error(string_format("Matrix FROM subtraction: number of rows/cols is different: "
+                                                  "to = (%d, %d), from = (%d, %d)",
+                                          to.n_rows, to.n_cols, from.n_rows, from.n_cols));
+
+    for (int i = 0; i < to.n_rows; ++i)
+        for (int j = 0; j < to.n_cols; ++j)
+            to.data[i][j] -= from.data[i][j];
+}
 
 void add_to(Matrix& to, const Matrix& from) {
     // to = to + from
     if ((to.n_rows != from.n_rows) || (to.n_cols != from.n_cols))
-        throw runtime_error(string_format("Matrix FROM subtraction: number of rows/cols is different: "
+        throw runtime_error(string_format("Matrix FROM addition: number of rows/cols is different: "
                                                   "to = (%d, %d), from = (%d, %d)",
                                           to.n_rows, to.n_cols, from.n_rows, from.n_cols));
 
