@@ -16,9 +16,9 @@ using namespace std;
 
 /*** MPI constants ***/
 const int MASTER = 0;
-const int GRAD_W_TAG    = 0;
-const int GRAD_B_TAG    = 1;
-const int COST_TAG      = 2;
+const int GRAD_W_TAG = 0;
+const int GRAD_B_TAG = 1;
+const int COST_TAG   = 2;
 
 static vector<double> NONE = vector<double>();
 
@@ -66,10 +66,12 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    Matrix W;        // TODO? more layers
-    Matrix b;
+private:
 
 public:
+    Matrix b;
+    Matrix W;        // TODO? more layers
+
     const int N_CLASSES;
     const int DATA_DIM;
 
@@ -77,9 +79,12 @@ public:
             N_CLASSES(n_classes), DATA_DIM (data_dim),
             W(data_dim, n_classes), b(1, n_classes) { }
 
-//    NeuralNetwork(string path) {
-//        this->load(path);
-//    }
+    NeuralNetwork(string path) :
+        N_CLASSES(10), DATA_DIM(784),
+        W(784, 10), b(1, 10) // TODO
+    {
+        this->load(path);
+    }
 
     double grad(const Matrix& chunk_X, const Matrix& chunk_Y,
                 Matrix& partial_grad_W, Matrix& partial_grad_b,
@@ -144,9 +149,14 @@ public:
         // Initial weights
         random_init(W);
 
+        if (verbose)
+            cout << "Training on " << n_samples / 1000 << "k samples"
+                 << " with " << n_workers << " workers"
+                 << " (" << chunk_size << " chunk size)" << endl;
+
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
             if (verbose) {
-                cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
+                cout << string_format("Epoch %d/%d", epoch, n_epochs) << flush;
                 start_time = chrono::system_clock::now();
             }
 
@@ -253,15 +263,15 @@ public:
         file.close();
     }
 
-//    void load(string path) {
-//        ifstream file(path);
-//        if (!file.is_open())
-//            throw runtime_error(string_format("Could not open for model load: " + path));
-//
-//        file >> *this;
-//
-//        file.close();
-//    }
+    void load(string path) {
+        ifstream file(path);
+        if (!file.is_open())
+            throw runtime_error(string_format("Could not open for model load: " + path));
+
+        file >> *this;
+
+        file.close();
+    }
 
     friend ostream& operator<<(ostream& os, const NeuralNetwork& net);
     friend istream& operator>>(istream& is, NeuralNetwork& net);
@@ -269,19 +279,16 @@ public:
 
 
 ostream& operator<<(ostream& os, const NeuralNetwork& net) {
+    os << net.N_CLASSES << ' ' << net.DATA_DIM << endl;
     os << net.b << net.W;  // place W last so it can be read until end of file
     return os;
 }
 
-//istream& operator>>(istream& is, NeuralNetwork& net) {
-//    // net.b is a 1xn matrix, if we read a matrix normally, we read until end of file,
-//    // but a vector is read until end of file
-//    vector<double> b_vect;
-//    do {
-//        is >> b_vect;
-//    } while (b_vect.size() == 0);  // to account for cursor left at end of line
-//    net.b = {b_vect};
-//
-//    is >> net.W;
-//    return is;
-//}
+istream& operator>>(istream& is, NeuralNetwork& net) {
+    // net.b is a 1xn matrix, if we read a matrix normally, we read until end of file,
+    // but a vector is read until end of file
+    int n_classses, data_dim;
+    is >> n_classses >> data_dim;
+    is >> net.b >> net.W;
+    return is;
+}

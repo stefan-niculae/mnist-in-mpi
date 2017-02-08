@@ -51,6 +51,7 @@ std::ostream& operator<<(std::ostream& os, const Matrix& matrix) {
     return os;
 }
 std::istream& operator>>(std::istream& is, Matrix& matrix) {
+    cout << "reading " << matrix.n_rows << " x " << matrix.n_cols << endl;
     for (int i = 0; i < matrix.n_rows; ++i)
         for (int j = 0; j < matrix.n_cols; ++j)
             is >> matrix.data[i][j];

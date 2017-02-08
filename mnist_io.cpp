@@ -9,8 +9,12 @@
 
 using namespace std;
 
+
 const int PIXEL_DIM = 255;
 const int IMAGE_SIDE = 28;
+const int IMAGE_PIXELS = IMAGE_SIDE * IMAGE_SIDE;
+const int N_DIGITS = 10; // hah
+
 
 void read_from_csv(string filename, Matrix& images, Matrix& labels, bool verbose=true) {
     // images.n_rows indicates how many images to read from the csv
@@ -58,3 +62,10 @@ void print_image(const Matrix& images, const int image_n) {
     }
     cout << endl;
 }
+
+void parse_image(const string& str, Matrix& X) {
+    istringstream stream(str);
+    for (int i = 0; i < X.n_cols; i++)
+        stream >> X.data[0][i]; // on first row
+}
+
