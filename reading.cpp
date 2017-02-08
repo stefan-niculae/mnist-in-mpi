@@ -42,8 +42,7 @@ void read_from_csv(string filename, Matrix& images, Matrix& labels, bool verbose
     }
     file.close();
 
-    if (verbose)
-        cout << "Done reading from " + filename << endl;
+    if (verbose) cout << "Done reading from " + filename << endl;
 }
 
 void print_image(const Matrix& images, const int image_n) {
