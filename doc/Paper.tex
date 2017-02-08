@@ -65,12 +65,17 @@ We implement a neural network to classify handwritten digits. The training is do
 
 
 \newpage
-\TODO{introduction?}
+\section{Introduction}
+\TODO{more here}
+
 
 \section{Problem statement}
 \label{sec:problem}
-Given a picture of a handwritten digit, label it accordingly 0 - 9.
-\TODO{more here}
+Pentru o retea neurala care foloseste un algoritm de antrenare bazat pe metoda gradientului descendent si dispune de o cantitate mare de date de antrenare timpul ca reteaua sa ajunga la rezultate satisfacatoare poate dura chiar si zile pe o implementare secventiala
+Ne propunem sa elaboram o implementare paralela a metodei gradientului descendent. Vom folosi pentru validarea implementarii o problema celebra in computer vision, cea a detectarii cifrelor scrise de mana.
+
+For a neural network witch use for training the gradient descendent algorithm and dispose a large amount of training data, the time to reach convergence it can take days in a sequentially implementation.
+We purpose to elaborate a parallel implementation of gradient descendent, and for validate that we use a common problem in computer vision: given a picture of a handwritten digit, label it accordingly 0 - 9.
 
 \section{Dataset}
 \label{sec:dataset}
@@ -98,18 +103,24 @@ The images are black-and-white, with a resolution of $28 \times 28$ pixels, repr
 In order to recognize a given image, we need to model to understand the data. It needs to be able to be queried for a new instance in order to provide an interactive demo.
 \\
 
-We use a back-propagation neural network:
-\begin{align*}
-W^{(k)} &= W^{(k-1)} + \alpha \nabla_W^{(k-1)} \\ 
-b^{(k)} &= b^{(k-1)} + \alpha \nabla_b^{(k-1)}
-\end{align*}
-Where $W$ is the weights matrix, $10 \times 784$ -- the number of classes( one for each digit) and the dimension of an image ($28 \times 28$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element. $W^{(k)}$ denotes the weights at step $k$. $\nabla$ represents the update which must produce to improve prediction.
+We use a feed-forward neural network with an one fully connected layer, which predict the digit that has been in input image.
+For an image $x$, initialy $28 \times 28$, we flatten this array into a vector of $784 = 28 \times 28$.
+
+
+\begin{align}
+y = softmax(Wx + b) \\
+image\_label &= argmax(y)
+\end{align}
+
+In $(1)$, $W$ is the weights matrix, $10 \times 784$ -- the number of classes(one for each digit) and the dimension of an image ($784$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element.
 \\
 
-The activation function is softmax:
-$$f(x_i)=\frac{exp(x_i)}{\sum_j exp(x_j)}$$
+The activation function output a vector of probabilities:
+$$softmax(x_i)=\frac{exp(x_i)}{\sum_j exp(x_j)}$$
 Where $exp(x)$ represents $e^x$, Euler's constant. It \textit{normalizes} the vector, causing the greatest elements to have logarithmic relative value.
 \\
+
+$(2)$ With $y$ vector of probabilities, $argmax$ take the index of the maximum value and results the prediction label.
 
 \begin{figure}[htb]
 \centering
@@ -131,10 +142,14 @@ The model uses an adaptive learning rate:
 $$\eta \frac{ W^{(k)} - W^{(k-1)} } { \nabla^{(k)} - \nabla^{(k-1)} }$$
 Where $\eta$ is the momentum parameter. This helps with stability in late epochs.
 
-\paragraph{Training} We employ gradient-descent on mini-batches. Early-stopping prevents the model from further learning when performance on the validation split starts decreasing. Random sampling averts cycles when iterating through the dataset.
-
-\paragraph{Prediction}
-\TODO{explain prediction?}
+\paragraph{Training} We employ gradient-descent on mini-batches. 
+\begin{align*}
+W^{(k)} &= W^{(k-1)} + \alpha \nabla_W^{(k-1)} \\ 
+b^{(k)} &= b^{(k-1)} + \alpha \nabla_b^{(k-1)}
+\end{align*}
+Where $W$ is the weights matrix, $10 \times 784$ -- the number of classes( one for each digit) and the dimension of an image ($28 \times 28$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element. $W^{(k)}$ denotes the weights at step $k$. $\nabla$ represents the update which must produce to improve prediction.
+\\
+Early-stopping prevents the model from further learning when performance on the validation split starts decreasing. Random sampling averts cycles when iterating through the dataset.
 
 \paragraph{Evaluation}
 Model performance is measured on a separate testing set using the accuracy metric -- ie: the percentage of images correctly classified.
