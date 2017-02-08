@@ -27,6 +27,6 @@ Or download manually from http://pjreddie.com/projects/mnist-in-csv and place th
 ## Run
 
 * Make sure `models` and `histories` folders exist: `mkdir models histories`
-* Train a model: `./mnist_in_mpi train`
+* Train a model: `mpirun -np <number of processes> ./mnist_in_mpi train`
 * Start the server: `./server.py`
 * Visit [localhost:5000](http://localhost:5000) and try it out!

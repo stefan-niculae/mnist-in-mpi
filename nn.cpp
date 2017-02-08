@@ -111,13 +111,19 @@ public:
 
     pair<vector<double>, vector<double>>
     train(const Matrix& X, const Matrix& Y,
-          const int n_epochs=100, const int batch_size=200, const double lr=0.1,
-          bool compute_acc=true, bool compute_cost=true, bool verbose=true) {
+          const int n_epochs=100, const int batch_size=200,
+          const double lr=0.1, int anneal_every=-1,
+          const bool shuffle=true, // TODO regularization parameter
+          const bool compute_acc=true, const bool compute_cost=true, bool verbose=true) {
 
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
         const int n_classes = Y.n_cols;
         double lr_anneal = lr;
+
+        if (anneal_every == -1)
+            anneal_every = n_epochs / 3; // by default, anneal after every third of n_epochs
+
         // MPI
         int rank, n_processes;
         MPI_Init(NULL, NULL);
@@ -164,7 +170,7 @@ public:
                 start_time = chrono::system_clock::now();
             }
             // learning rate anneal
-            if (epoch % (n_epochs/3) == 0)
+            if (epoch % anneal_every == 0)
                 lr_anneal /= 2.;
 
             for (int batch_start = 0; batch_start < X.n_rows; batch_start += batch_size) {
@@ -187,7 +193,7 @@ public:
                         if (compute_cost) total_cost += partial_cost;
                     }
 
-                    //After receive
+                    // After receive
                     scalar_mult(lr_anneal, total_grad_W, lr_grad_W);                     // TODO? regularization
                     scalar_mult(lr_anneal, total_grad_b, lr_grad_b);
                     sub_from(W, lr_grad_W); // W = W - lr * grad_W
@@ -198,7 +204,7 @@ public:
 
 
                 if (rank != MASTER) { // worker
-                     start_index = batch_start + (rank - 1) * chunk_size;                    // TODO? make random batch generator
+                    start_index = batch_start + (rank - 1) * chunk_size;
                     start_index = rand_int(0, n_samples - chunk_size - 1);
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
