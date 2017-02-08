@@ -169,16 +169,40 @@ TODO
 
 \newpage
 \section{Parallelization}
-Parallelism is needed in the training phase of the model, as prediction happens instantaneously
+The phase that needs parallelization is the training of the model. Predicting is not computationally intensive. The bulk of the time is spent iterating over the entire training set multiple times. In one epoch, the network looks at every image, in batches and does the following:
+\begin{itemize}
+\item compute the change that must happen in order to better recognize -- called gradient,
+\item updates its internal weights based on the gradient.
+\end{itemize}
+Computing the gradient takes the most time. The expensive operations are two dot-products on the weights matrices and the a matrix-wise softmax. This is the portion that we will parallelize.
+
+When looking at a batch of images:
+\begin{itemize}
+\item the batch is assigned evenly among workers,
+\item each worker computes the gradient on its chunk of the batch,
+\item partial gradients are sent from each worker to the master,
+\item the master process accumulates all the partial gradients and aggregates them,
+\item the master updates the model weights based on the total gradient,
+\item updated weights are sent back to every worker,
+\item a new batch is ready to be processed: each worker now knows the effects of all the others.
+\end{itemize}
+
+In our case, aggregating the partial gradients requires nothing more then a summation.
+\\
+
+Naturally, there appears a running time -- model accuracy trade-off. Updating the weights after every image yields better accuracy than updating once every 1,000 samples. In the case of a greater batch size, the model has not evolved after looking at the first image, nor after the second or the third. It still analyzes them knowing just as much as it did when looking at the first sample.
+
+In contrast, a greater batch size produces better parallelization performance. If each worker is assigned a single image, the communication cost of transferring gradient and weight matrices far outweighs the time taken to compute them. Efficiency improvement is present only when the time taken to transfer the results is lower than the time taken to compute them. Greater batch sizes incur more infrequent updates thus reducing the communication overhead.
+
+The trade-off is now clear: a lower batch size leads to greater accuracy while a greater batch size causes faster training.
 
 TODO: talk about matrix multiplication overhead
 
-TODO: graph of train time vs nr of processors
 
 \begin{center}
 \begin{tikzpicture}
 \begin{axis}[
-  title={Time performance},
+  title={Time per epoch},
   xlabel=Processes,
   ylabel=Seconds,
   bar width=.8cm,
