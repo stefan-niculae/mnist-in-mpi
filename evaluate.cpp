@@ -31,8 +31,7 @@ vector<int> labels_from_one_hot(const Matrix& matrix) {
 
 vector<int> argmax(const Matrix& matrix) {
     vector<int> result(matrix.n_rows, 0);
-    double row_max;
-    int col_of_max;
+    int col_of_max = 0;
 
     for (int row = 0; row < matrix.n_rows; ++row) {
         double row_max = matrix.data[row][0];

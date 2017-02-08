@@ -248,10 +248,6 @@ public:
         const int n_samples = X.n_rows, n_classes = b.n_cols;
         Matrix XW = Matrix(n_samples, n_classes), XWb(n_samples, n_classes), Y_prob(n_samples, n_classes);
 
-        cout << X;
-        cout << W;
-        cout << XW;
-
         dot(X, W, XW); // XW = X * W
         add_to_each(XW, b, XWb); // XWb = X * W + b
         softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)

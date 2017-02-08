@@ -61,7 +61,6 @@
             afterRecog.fadeIn();
 
             // TODO: start loader here
-            console.log(resized_pixels().join(','));
             $.getJSON('/recognize', {pixels: resized_pixels().join(',')}, function (result) {
                 console.log(result);
                 afterRecog.find('.prediction').text(result.number);
