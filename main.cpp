@@ -2,6 +2,7 @@
 #include "reading.cpp"
 #include "nn.cpp"
 #include "matrix.cpp"
+#include <iomanip>
 
 using namespace std;
 
@@ -60,14 +61,14 @@ int main(int argc, const char* argv[]) {
 
     int n_samples = 10000;
     Matrix images(n_samples, 784), labels(n_samples, 10);
-    read_from_csv(string("/home/ionut/workspace/ppc/mnist-in-mpi/data/sample.csv"), images, labels);
+    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/test.csv"), images, labels);
     NeuralNetwork net;
     vector<double> cost_history, acc_history;
-    net.train(images, labels, cost_history,acc_history);
-    for (int i = 0; i < acc_history.size(); ++i) {
-        cout << acc_history[i] << endl;
-
-    }
+    cout << setprecision(3);
+    net.train(images, labels, cost_history, acc_history);
+//    for (int i = 0; i < acc_history.size(); ++i) {
+//        cout << acc_history[i] << endl;
+//    }
 
 
 //    Matrix m(4, 2);

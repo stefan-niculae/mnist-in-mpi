@@ -16,24 +16,33 @@ double accuracy(const vector<int>& y_true, const vector<int>& y_pred) {
     return double(correct_preds) / n;
 }
 
-// row-wise from_one_hot
-vector<int> from_one_hot_matrix(const Matrix& matrix) {
-    vector<int> result;
-    result.reserve(matrix.n_rows);
+vector<int> labels_from_one_hot(const Matrix& matrix) {
+    vector<int> result(matrix.n_rows, 0);
 
-    for (int i = 0; i < matrix.n_rows; ++i) {
-        result.push_back(from_one_hot(matrix.data[i], matrix.n_cols));
-    }
+    for (int row = 0; row < matrix.n_rows; ++row)
+        for (int col = 0; col < matrix.n_cols; ++col) // {0 0 1 0 0} ~> 2
+            if (matrix.data[row][col] == 1) {
+                result[row] = col;
+                break;
+            }
+
     return result;
 }
 
-// row-wise argmax
-vector<int> argmax_matrix(const Matrix& matrix) {
-    vector<int> result;
-    result.reserve(matrix.n_rows);
+vector<int> argmax(const Matrix& matrix) {
+    vector<int> result(matrix.n_rows, 0);
+    double row_max;
+    int col_of_max;
 
-    for (int i = 0; i < matrix.n_rows; ++i) {
-        result.push_back(argmax(matrix.data[i], matrix.n_cols));
+    for (int row = 0; row < matrix.n_rows; ++row) {
+        double row_max = matrix.data[row][0];
+        for (int col = 1; col < matrix.n_cols; ++col) // {0 0 1 0 0} ~> 2
+            if (matrix.data[row][col] > row_max) {
+                row_max = matrix.data[row][col];
+                col_of_max = col;
+            }
+        result[row] = col_of_max;
     }
+
     return result;
 }

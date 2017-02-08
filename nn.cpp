@@ -6,6 +6,7 @@
 #include "matrix.cpp"
 #include "evaluate.cpp"
 #include <vector>
+#include <chrono>
 
 
 using namespace std;
@@ -52,10 +53,11 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 class NeuralNetwork {
 
     const int N_SAMPLES = 10000;
+    const int N_WORKERS = 1; // how many processes compute gradient in parallel
+
     const int N_CLASSES = 10; // 10 digits from 0 to 9
     const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
     const int BATCH_SIZE = 100; // after how many pictures the weights are updated
-    const int N_WORKERS = 4; // how many processes compute gradient in parallel
     const int CHUNK_SIZE = BATCH_SIZE / N_WORKERS; // how many rows each worker gets
 
     // X dimensions: N_SAMPLES x DATA_DIM
@@ -98,25 +100,10 @@ public:
 //    }
 
     void grad() {
-//        print_dimensions(chunk_X);
-//        print_dimensions(W);
-//        print_dimensions(cXW);
-//        cout << "first elem of chunk x = " << chunk_X.data[0][0] << endl;
-//        for (int i = 0; i < chunk_X.n_rows; ++i) {
-//            for (int j = 0; j < chunk_X.n_cols; ++j) {
-//                chunk_X.data[i][j] *= 1;
-//                cout << i << ',' << j << '=';
-//            }
-//            cout << endl;
-//        }
         dot(chunk_X, W, cXW); // cXW = X * W
-//        cout << "after dot1\n";
         add_to_each(cXW, b, cXWb); // cXWb = X * W + b
-//        cout << "after add_to_each/**/\n";
         softmax(cXWb, cY_prob); // cY_prob = softmax(X * W + b)
-//        cout << "after softmax\n";
         sub(cY_prob, chunk_Y, delta); // delta = cY_prob - Y
-//        cout << "after sub1\n";
 
         double contribution = 1/double(CHUNK_SIZE);
 
@@ -135,55 +122,51 @@ public:
 
     void train(const Matrix& X, const Matrix& Y,
                vector<double>& cost_history, vector<double>& accuracy_history,
-               int n_epochs=10, int batch_size=100, double lr=0.1,
+               int n_epochs=100, double lr=0.5,
                bool verbose=true) {
         double cost, acc;
-        vector<int> Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
+        vector<int> Y_labels = labels_from_one_hot(Y); // {5, 2, 9, ... }
+        std::chrono::time_point<std::chrono::system_clock> start_time, end_time;
 
         random_init(W);
-//        cout << "after init W" << endl;
 
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
             if (verbose)
-                cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
+                cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
+            start_time = std::chrono::system_clock::now();
 
             for (int batch_start = 0; batch_start < X.n_rows; batch_start += BATCH_SIZE) {
-//                cout << "batch start = " << X.data + batch_start * X.n_cols<< endl;
                 // TODO? make random batch generator
                 take_chunk(X, batch_start, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
-//                cout << "after take chunk X\n";
                 take_chunk(Y, batch_start, chunk_Y);
-//                cout << "after take chunk Y\n";
                 grad(); // grad_W and grad_b are now filled with result
-//                cout << "after grad\n";
 
                 // TODO? regularization
                 scalar_mult(-lr, grad_W, lr_grad_W);
                 scalar_mult(-lr, grad_b, lr_grad_b);
-//                cout << "after scalar mults\n";
                 sub_from(W, lr_grad_W); // W = W - lr * grad_W
                 sub_from(b, lr_grad_b); // b = b - lr * grad_b
-//                cout << "after update W & b\n";
 //                cost_history.push_back(cost); // TODO
             }
-//            cout << "at end of epoch loop";
+
+            end_time = std::chrono::system_clock::now();
+            std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+            cout << " done in " << elapsed_seconds.count() << "s, " << flush;
 
             // TODO: add early stopping
             // Compute accuracy after each epoch
             acc = accuracy(predict(X), Y_labels);
-            accuracy_history.push_back(acc);
+            cout << "accuracy: " << acc * 100 << "%";
+            accuracy_history.push_back(acc) << endl;
         }
 
     }
 
     vector<int> predict(const Matrix& X) {
-//        print_dimensions(X);
-//        print_dimensions(W);
-//        print_dimensions(XW);
         dot(X, W, XW); // XW = X * W
         add_to_each(XW, b, XWb); // XWb = X * W + b
         softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
-        return argmax_matrix(Y_prob);
+        return argmax(Y_prob);
     }
 //
 //    int predict_one(const vector<double>& pixels, double& confidence) {
