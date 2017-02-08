@@ -42,7 +42,7 @@
 	}
 
 	\maketitle
-	\setlength{\parindent}{0pt}
+% 	\setlength{\parindent}{0pt}
 
 \vspace{5cm}
 \begin{abstract}
@@ -105,6 +105,12 @@ $$f(x_i)=\frac{exp(x_i)}{\sum_j exp(x_j)}$$
 Where $exp(x)$ represents $e^x$, Euler's constant. It \textit{normalizes} the vector, causing the greatest elements to have logarithmic relative value.
 \\
 
+\begin{figure}[htb]
+\centering
+\includegraphics[width=8cm]{images/model-graph.png}
+\caption{Simplified representation of model graph \cite{tf}}
+\end{figure}
+
 The cost function is cross-entropy:
 $$H(y_t, y_p)=-\sum_x y_t log(y_p)$$
 Where $y_t$ is the true, correct label of an image and $y_p$ is the label predicted by the model.
@@ -119,18 +125,14 @@ The model uses an adaptive learning rate:
 $$\eta \frac{ W^{(k)} - W^{(k-1)} } { \nabla^{(k)} - \nabla^{(k-1)} }$$
 Where $\eta$ is the momentum parameter. This helps with stability in late epochs.
 
-\begin{figure}[htb]
-\centering
-\includegraphics[width=8cm]{images/model-graph.png}
-\caption{Simplified representation of model graph \cite{tf}}
-\end{figure}
-
-\paragraph{Training} We employ gradient-descent on mini-batches. Early-stopping prevents the model from further learning when performance on the validation split starts decreasing.
+\paragraph{Training} We employ gradient-descent on mini-batches. Early-stopping prevents the model from further learning when performance on the validation split starts decreasing. Random sampling averts cycles when iterating through the dataset.
 
 \paragraph{Prediction}
 TODO
 
 \paragraph{Evaluation}
+Model performance is measured on a separate testing set using the accuracy metric -- ie: the percentage of images correctly classified.
+
 TODO
 
 \begin{center}
@@ -186,7 +188,6 @@ When looking at a batch of images:
 \item updated weights are sent back to every worker,
 \item a new batch is ready to be processed: each worker now knows the effects of all the others.
 \end{itemize}
-
 In our case, aggregating the partial gradients requires nothing more then a summation.
 \\
 
@@ -197,10 +198,7 @@ In contrast, a greater batch size produces better parallelization performance. I
 The trade-off is now clear: a lower batch size leads to greater accuracy while a greater batch size causes faster training.
 \\
 
-Another 
-
-TODO: talk about matrix multiplication overhead
-
+Another approach would be to let the algorithm run sequentially and parallelize only the matrix multiplication operation. In light of the previously presented considerations, we can conclude that this would be grossly inefficient. The transfer overhead is much higher than the benefit gained by splitting the problem.
 
 \begin{center}
 \begin{tikzpicture}
@@ -245,7 +243,9 @@ After going through the high-level overview of the project, we now delve into im
 
 \paragraph{Predictive model} The core of the project is implemented in C++. This includes the neural network training and prediction. Model weights and image samples are kept in memory using 2D-arrays. 
 
-Matrices build as vector of vectors (using the standard library implementation), while providing greater flexibility, cannot be sent efficiently using MPI. MPI deals with contiguous blocks of memory, while STL vectors are, by definition, dynamic. A workaround this is to send a matrix row-by-row. Our initial implementation used this method but unfortunately it provides little to no increase in parallelization performance and caused a general-rewrite.
+Matrices build as vector of vectors (using the standard library implementation), while providing greater flexibility, cannot be sent efficiently using MPI. MPI deals with contiguous blocks of memory, while STL vectors are, by definition, dynamic. A work-around for this is to send a matrix row-by-row. Our initial implementation used this method but unfortunately it provides little to no increase in parallelization performance and caused a general-rewrite. 
+
+The most expensive matrix operations are dot products and exponentiation. For matrix multiplication, we explored the Strassen algorithm, $O(n^{2.8})$, and the Coppersmith–Winograd algorithm, $O(n^{2.37})$. Although they achieve high asymptotic performance, hidden constants make them impractical in our case. We went with the Naive, $\Theta(n^3)$, algorithm with the $ikj$ optimization.
 
 \paragraph{Graphical Interface} The GUI is implemented as a web page in HTML, with a canvas for the input box.
 The drawing is facilitated by the Sketch library \cite{sketch}. Interactivity and picture resizing is done through JavaScript.
@@ -253,7 +253,7 @@ The drawing is facilitated by the Sketch library \cite{sketch}. Interactivity an
 \paragraph{Communication Server} The glue between the front-end and the model is a web-server done in Python, using the Flask library \cite{flask}. An array of $784$ pixels is received through from the GUI and is passed to the compiled executable. The output (predicted digit and prediction confidence) is then passed back through AJAX.
 \\
 
-The entire source code is available at \url{https://github.com/stefan1niculae/mnist-in-mpi}.
+\noindent The entire source code is available at \url{https://github.com/stefan1niculae/mnist-in-mpi}.
 
 \vspace{\fill} % place references at the bottom
 \bibliographystyle{ieeetr}
