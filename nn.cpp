@@ -66,21 +66,16 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    const int N_CLASSES = 10; // 10 digits from 0 to 9
-    const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
-
-
-    // X dimensions: N_SAMPLES x DATA_DIM
-    // Y dimensions: N_SAMPLES x N_CLASSES
-
-    Matrix W = Matrix(DATA_DIM, N_CLASSES);        // TODO? more layers
-    Matrix b = Matrix(1, N_CLASSES);
-
-
+    Matrix W;        // TODO? more layers
+    Matrix b;
 
 public:
+    const int N_CLASSES;
+    const int DATA_DIM;
 
-    NeuralNetwork() { }
+    NeuralNetwork(const int data_dim, const int n_classes) :
+            N_CLASSES(n_classes), DATA_DIM (data_dim),
+            W(data_dim, n_classes), b(1, n_classes) { }
 
 //    NeuralNetwork(string path) {
 //        this->load(path);
@@ -104,14 +99,13 @@ public:
         col_wise_sums(delta, delta_sums);
         scalar_mult(contribution, delta_sums, partial_grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
-        // TODO maybe
-        return cross_entropy(chunk_Y, cY_prob); // cost
+        return compute_cost ? cross_entropy(chunk_Y, cY_prob) : 0;
     }
 
     pair<vector<double>, vector<double>>
     train(const Matrix& X, const Matrix& Y,
           const int n_epochs=100, const int batch_size=200, const double lr=0.1,
-          bool compute_cost=true, bool compute_acc=true, bool verbose=true) {
+          bool compute_acc=true, bool compute_cost=true, bool verbose=true) {
 
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
@@ -197,7 +191,7 @@ public:
                     // Send partial gradients to master
                     MPI_Send(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE, MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
                     MPI_Send(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE, MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
-                    if(compute_cost) MPI_Send(&partial_cost, 1, MPI_DOUBLE, MASTER, COST_TAG, MPI_COMM_WORLD);
+                    if (compute_cost) MPI_Send(&partial_cost, 1, MPI_DOUBLE, MASTER, COST_TAG, MPI_COMM_WORLD);
                 }
 
                 // Send back updated W and b to all workers

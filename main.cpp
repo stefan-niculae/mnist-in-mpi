@@ -53,32 +53,11 @@ int main(int argc, const char* argv[]) {
 //        return 0;
 //    }
 
-//    double* v = new double[5];
-//    for (int i = 0; i < 5; ++i)
-//        v[i] = 100+i;
-//    double* w = v+2;
-//    cout << w[0];
-
-    int n_samples = 2000;
-    Matrix images(n_samples, 784), labels(n_samples, 10);
-    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/test.csv"), images, labels, false);
-    NeuralNetwork net;
     cout << setprecision(3);
+
+    int n_samples = 2000; Matrix images(n_samples, 784), labels(n_samples, 10);
+    read_from_csv("data/test.csv", images, labels, false);
+    NeuralNetwork net(784, 10);
     auto histories = net.train(images, labels, 100, 200, 0.5, true, true, true);
-
-
-//    Matrix m(4, 2);
-//    int k = 0;
-//    for (int i = 0; i < m.n_rows; ++i)
-//        for (int j = 0; j < m.n_cols; ++j)
-//            m.data[i][j] = k++;
-//    cout << m;
-//
-//    Matrix chunk(2, 2);
-//    take_chunk(m, 1, chunk);
-//    cout << endl << chunk;
-
-
-    return 0;
 }
 
