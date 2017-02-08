@@ -15,17 +15,18 @@ public:
 
     Matrix(int n_rows,int n_cols):
             n_rows(n_rows), n_cols(n_cols), n_elements(n_rows * n_cols) {
-        data = new double*[n_rows];
+
+        double* mem = (double*)malloc(n_rows * n_cols * sizeof(double));
+        data = (double**)malloc(n_rows * sizeof(double*));
         for (int i = 0; i < n_rows; ++i)
-            data[i] = new double[n_cols];
+            data[i] = &(mem[n_cols * i]);
     }
 
     ~Matrix() {
         if (is_chunk)
             return;
-        for (int i = 0; i < n_rows; ++i)
-            delete[] data[i];
-        delete[] data;
+        free(data[0]);
+        free(data);
     }
 
     void clear() {

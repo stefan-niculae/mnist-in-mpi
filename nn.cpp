@@ -157,13 +157,16 @@ public:
 
             for (int batch_start = 0; batch_start < X.n_rows; batch_start += BATCH_SIZE) {
                 if (rank == MASTER) {
+
                     // clear summed from previous batch
                     total_grad_W.clear();
                     total_grad_b.clear();
+//                    cout << ">>>>>master: epoch " << epoch << ", batch_start " << batch_start <<  endl;
 
                     // Get partial gradients from each worker
                     for (int worker = 1; worker <= N_WORKERS; ++worker) {
-//                        cout << "master: waiting for worker #" << worker << endl;
+//                        cout << "master: waiting for worker #" << worker << " in epoch " << epoch << endl;
+                        cout << ">>>>>master: epoch " << epoch << ", batch_start " << batch_start << ", worker #" << worker <<  endl;
                         MPI_Recv(&(partial_grad_W.data[0][0]), partial_grad_W.n_elements, MPI_DOUBLE, worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         MPI_Recv(&(partial_grad_b.data[0][0]), partial_grad_b.n_elements, MPI_DOUBLE, worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 //                        cout << "here" << endl;
@@ -173,7 +176,6 @@ public:
 //                    cout << ">>>>>>>>>>>>>>>master before"<< endl;
                     add_to(total_grad_W, partial_grad_W);
                     add_to(total_grad_b, partial_grad_b);
-//                    cout << ">>>>>>>>>>>>>>>master afte"<< endl;
 
                     // After receiving all the partial gradients
                     // TODO? regularization
@@ -192,7 +194,7 @@ public:
                 if (rank != MASTER) { // worker
                     // TODO? make random batch generator
                     start_index = batch_start + (rank - 1) * CHUNK_SIZE;
-//                    cout << "for the batch starting at " << batch_start << ", worker #" << rank << " starts from " << start_index << endl;
+                    cout << "worker #" << rank << ": batch_start " << batch_start << ", start_index = " << start_index << endl;
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
                     grad(); // grad_W and grad_b are now filled with result
@@ -204,8 +206,8 @@ public:
                     // Receive broadcasted W and b matrices
                     MPI_Bcast(&(b.data[0][0]), b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
                     MPI_Bcast(&(W.data[0][0]), W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+                    cout << "worker #" << rank << " here" << endl;
                 }
-
 
             }
 
