@@ -6,7 +6,12 @@ TODO: redo the demo gif with a white background
   <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/demo.gif" alt="Demo gif"/>
 </p>
 
-TODO: add training accuracy plot & parallel performance plot
+<p align="center">
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/time-chart.png" alt="Time Chart"/>
+</p>
+
+
+TODO: add training accuracy plot
 
 TODO: add paper pdf and a small screenshot
 
