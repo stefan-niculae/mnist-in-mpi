@@ -12,7 +12,7 @@ using namespace std;
 const int PIXEL_DIM = 255;
 const int IMAGE_SIDE = 28;
 
-void read_from_csv(string filename, Matrix& images, Matrix& labels) {
+void read_from_csv(string filename, Matrix& images, Matrix& labels, bool verbose=true) {
     // images.n_rows indicates how many images to read from the csv
     ifstream file(filename);
 
@@ -42,7 +42,8 @@ void read_from_csv(string filename, Matrix& images, Matrix& labels) {
     }
     file.close();
 
-    cout << "Done reading from " + filename << endl;
+    if (verbose)
+        cout << "Done reading from " + filename << endl;
 }
 
 void print_image(const Matrix& images, const int image_n) {

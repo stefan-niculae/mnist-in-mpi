@@ -8,11 +8,13 @@ class Matrix {
 
 public:
     double** data;
-    int n_rows;
-    int n_cols;
+    const int n_rows;
+    const int n_cols;
+    const int n_elements;
     bool is_chunk = false;
 
-    Matrix(int n_rows,int n_cols): n_rows(n_rows), n_cols(n_cols) {
+    Matrix(int n_rows,int n_cols):
+            n_rows(n_rows), n_cols(n_cols), n_elements(n_rows * n_cols) {
         data = new double*[n_rows];
         for (int i = 0; i < n_rows; ++i)
             data[i] = new double[n_cols];
@@ -31,6 +33,7 @@ public:
             for (int j = 0; j < n_cols; ++j)
                 data[i][j] = 0;
     }
+
 };
 
 void print_dimensions(const Matrix& m) {
@@ -138,16 +141,16 @@ void sub(const Matrix& lhs, const Matrix& rhs, Matrix& result) {
             result.data[i][j] = rhs.data[i][j] - lhs.data[i][j];
 }
 
-void sub_from(Matrix& from, const Matrix& to_sub) {
-    // from = from - to_sub
-    if ((from.n_rows != to_sub.n_rows) || (from.n_cols != to_sub.n_cols))
+void add_to(Matrix& to, const Matrix& from) {
+    // to = to + from
+    if ((to.n_rows != from.n_rows) || (to.n_cols != from.n_cols))
         throw runtime_error(string_format("Matrix FROM subtraction: number of rows/cols is different: "
-                                                  "from = (%d, %d), to_sub = (%d, %d)",
-                                          from.n_rows, from.n_cols, to_sub.n_rows, to_sub.n_cols));
+                                                  "to = (%d, %d), from = (%d, %d)",
+                                          to.n_rows, to.n_cols, from.n_rows, from.n_cols));
 
-    for (int i = 0; i < from.n_rows; ++i)
-        for (int j = 0; j < from.n_cols; ++j)
-            from.data[i][j] -= to_sub.data[i][j];
+    for (int i = 0; i < to.n_rows; ++i)
+        for (int j = 0; j < to.n_cols; ++j)
+            to.data[i][j] += from.data[i][j];
 }
 
 

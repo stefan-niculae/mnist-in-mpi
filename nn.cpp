@@ -7,9 +7,17 @@
 #include "evaluate.cpp"
 #include <vector>
 #include <chrono>
+#include "mpi.h"
 
 
 using namespace std;
+
+
+/*** MPI constants ***/
+const int MASTER = 0;
+const int GRAD_W_TAG    = 0;
+const int GRAD_B_TAG    = 1;
+
 
 
 /*** Requisites ***/
@@ -52,12 +60,12 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    const int N_SAMPLES = 10000;
-    const int N_WORKERS = 1; // how many processes compute gradient in parallel
+    const int N_SAMPLES = 250;
+    const int N_WORKERS = 2; // how many processes compute gradient in parallel
 
     const int N_CLASSES = 10; // 10 digits from 0 to 9
     const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
-    const int BATCH_SIZE = 100; // after how many pictures the weights are updated
+    const int BATCH_SIZE = 50; // after how many pictures the weights are updated
     const int CHUNK_SIZE = BATCH_SIZE / N_WORKERS; // how many rows each worker gets
 
     // X dimensions: N_SAMPLES x DATA_DIM
@@ -82,8 +90,12 @@ class NeuralNetwork {
 
     Matrix lr_grad_W = Matrix(DATA_DIM, N_CLASSES); // like W
     Matrix lr_grad_b = Matrix(1, N_CLASSES); // like b
-    Matrix grad_W = Matrix(DATA_DIM, N_CLASSES); // like W
-    Matrix grad_b = Matrix(1, N_CLASSES); // like b
+
+    Matrix partial_grad_W = Matrix(DATA_DIM, N_CLASSES); // like W
+    Matrix partial_grad_b = Matrix(1, N_CLASSES); // like b
+
+    Matrix total_grad_W = Matrix(DATA_DIM, N_CLASSES); // like W
+    Matrix total_grad_b = Matrix(1, N_CLASSES); // like b
 
     // for prediction, on entire dataset
     Matrix XW = Matrix(N_SAMPLES, N_CLASSES);
@@ -108,13 +120,11 @@ public:
         double contribution = 1/double(CHUNK_SIZE);
 
         transpose(chunk_X, trX); // trX = transpose(X)
-//        cout << "after transpose\n";
         dot(trX, delta, trXdelta); // trXdelta = transpose(X) * delta
-//        cout << "after dot2\n";
-        scalar_mult(contribution, trXdelta, grad_W); // grad_W = 1/n * transpose(chunk_X) * delta
+        scalar_mult(contribution, trXdelta, partial_grad_W); // grad_W = 1/n * transpose(chunk_X) * delta
 
         col_wise_sums(delta, delta_sums);
-        scalar_mult(contribution, delta_sums, grad_b); // grad_b = 1/n * col_wise_sums(delta)
+        scalar_mult(contribution, delta_sums, partial_grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
         // TODO maybe
 //        return cross_entropy(Y, cY_prob); // cost
@@ -124,40 +134,93 @@ public:
                vector<double>& cost_history, vector<double>& accuracy_history,
                int n_epochs=100, double lr=0.5,
                bool verbose=true) {
+        if (N_SAMPLES != X.n_rows) throw runtime_error("bad N_SAMPLES");
+
         double cost, acc;
         vector<int> Y_labels = labels_from_one_hot(Y); // {5, 2, 9, ... }
         std::chrono::time_point<std::chrono::system_clock> start_time, end_time;
+        MPI_Init(NULL, NULL);
+        int rank, n_processes;
+        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
+        MPI_Comm_size(MPI_COMM_WORLD, &n_processes);
+        if (n_processes != N_WORKERS + 1) throw runtime_error("bad N_WORKERS");
+        if (N_SAMPLES % CHUNK_SIZE != 0) throw runtime_error("samples not divisible by chunk");
+        int start_index;
 
         random_init(W);
 
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
-            if (verbose)
-                cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
-            start_time = std::chrono::system_clock::now();
-
-            for (int batch_start = 0; batch_start < X.n_rows; batch_start += BATCH_SIZE) {
-                // TODO? make random batch generator
-                take_chunk(X, batch_start, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
-                take_chunk(Y, batch_start, chunk_Y);
-                grad(); // grad_W and grad_b are now filled with result
-
-                // TODO? regularization
-                scalar_mult(-lr, grad_W, lr_grad_W);
-                scalar_mult(-lr, grad_b, lr_grad_b);
-                sub_from(W, lr_grad_W); // W = W - lr * grad_W
-                sub_from(b, lr_grad_b); // b = b - lr * grad_b
-//                cost_history.push_back(cost); // TODO
+            if (rank == MASTER) {
+//                cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
+                start_time = std::chrono::system_clock::now();
             }
 
-            end_time = std::chrono::system_clock::now();
-            std::chrono::duration<double> elapsed_seconds = end_time - start_time;
-            cout << " done in " << elapsed_seconds.count() << "s, " << flush;
+            for (int batch_start = 0; batch_start < X.n_rows; batch_start += BATCH_SIZE) {
+                if (rank == MASTER) {
+                    // clear summed from previous batch
+                    total_grad_W.clear();
+                    total_grad_b.clear();
+
+                    // Get partial gradients from each worker
+                    for (int worker = 1; worker <= N_WORKERS; ++worker) {
+//                        cout << "master: waiting for worker #" << worker << endl;
+                        MPI_Recv(&(partial_grad_W.data[0][0]), partial_grad_W.n_elements, MPI_DOUBLE, worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        MPI_Recv(&(partial_grad_b.data[0][0]), partial_grad_b.n_elements, MPI_DOUBLE, worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+//                        cout << "here" << endl;
+//                        cout << partial_grad_b.data[0][0] << endl;
+                    }
+
+//                    cout << ">>>>>>>>>>>>>>>master before"<< endl;
+                    add_to(total_grad_W, partial_grad_W);
+                    add_to(total_grad_b, partial_grad_b);
+//                    cout << ">>>>>>>>>>>>>>>master afte"<< endl;
+
+                    // After receiving all the partial gradients
+                    // TODO? regularization
+                    scalar_mult(lr, total_grad_W, lr_grad_W); // TODO!!! minus here!?
+                    scalar_mult(lr, total_grad_b, lr_grad_b);
+                    add_to(W, lr_grad_W); // W = W - lr * grad_W
+                    add_to(b, lr_grad_b); // b = b - lr * grad_b
+
+                    // Send back updated W and b to all workers
+                    MPI_Bcast(&(W.data[0][0]), W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+                    MPI_Bcast(&(b.data[0][0]), b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+//                cost_history.push_back(cost); // TODO
+                }
+
+
+                if (rank != MASTER) { // worker
+                    // TODO? make random batch generator
+                    start_index = batch_start + (rank - 1) * CHUNK_SIZE;
+//                    cout << "for the batch starting at " << batch_start << ", worker #" << rank << " starts from " << start_index << endl;
+                    take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
+                    take_chunk(Y, start_index, chunk_Y);
+                    grad(); // grad_W and grad_b are now filled with result
+
+                    // Send partial gradients to master
+                    MPI_Send(&(partial_grad_W.data[0][0]), partial_grad_W.n_elements, MPI_DOUBLE, MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
+                    MPI_Send(&(partial_grad_b.data[0][0]), partial_grad_b.n_elements, MPI_DOUBLE, MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
+
+                    // Receive broadcasted W and b matrices
+                    MPI_Bcast(&(b.data[0][0]), b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+                    MPI_Bcast(&(W.data[0][0]), W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
+                }
+
+
+            }
+
+            if (rank == MASTER) {
+                end_time = std::chrono::system_clock::now();
+                std::chrono::duration<double> elapsed_seconds = end_time - start_time;
+//                cout << " done in " << elapsed_seconds.count() << "s, " << flush;
+            }
 
             // TODO: add early stopping
             // Compute accuracy after each epoch
             acc = accuracy(predict(X), Y_labels);
-            cout << "accuracy: " << acc * 100 << "%" << endl;
             accuracy_history.push_back(acc);
+//            if (rank == MASTER)
+//                cout << "accuracy: " << acc * 100 << "%" << endl;
         }
 
     }

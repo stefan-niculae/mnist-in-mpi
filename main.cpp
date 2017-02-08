@@ -59,9 +59,9 @@ int main(int argc, const char* argv[]) {
 //    double* w = v+2;
 //    cout << w[0];
 
-    int n_samples = 10000;
+    int n_samples = 250;
     Matrix images(n_samples, 784), labels(n_samples, 10);
-    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/test.csv"), images, labels);
+    read_from_csv(string("/Users/Stefan/Projects/mnist-in-mpi/data/sample.csv"), images, labels, false);
     NeuralNetwork net;
     vector<double> cost_history, acc_history;
     cout << setprecision(3);
