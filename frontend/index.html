@@ -29,7 +29,7 @@
     <button id="recognize" class="btn btn-secondary">Recognize</button>
 
     <div id="after-recog">
-        <p>Recognized number <b><span class="prediction">5</span></b> with <span class="conf">98</span>% confidence</p>
+        <p>Recognized number <b><span class="prediction">-</span></b> with <span class="conf">-</span>% confidence</p>
         <button id="reset" class="btn btn-secondary">Reset</button>
     </div>
 
@@ -61,6 +61,7 @@
             afterRecog.fadeIn();
 
             // TODO: start loader here
+            console.log(resized_pixels().join(','));
             $.getJSON('/recognize', {pixels: resized_pixels().join(',')}, function (result) {
                 console.log(result);
                 afterRecog.find('.prediction').text(result.number);

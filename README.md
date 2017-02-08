@@ -1,7 +1,7 @@
 # mnist-in-mpi
 Handwritten digits recognition using a parallel neural network.
 
-TODO: redo the demo gif with a white background, move it to frontend\
+TODO: redo the demo gif with a white background
 <p align="center">
   <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/demo.gif" alt="Demo gif"/>
 </p>

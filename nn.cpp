@@ -122,6 +122,8 @@ public:
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &n_processes);
         const int n_workers = n_processes - 1; // how many processes compute gradient in parallel, first is master
+        if (n_workers < 1) throw runtime_error("no workers!");
+
         const int chunk_size = batch_size / n_workers; // how many rows each worker gets
         if (rank != MASTER) verbose = false; // only master is allowed to talk
 
@@ -240,16 +242,24 @@ public:
         softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
         return argmax(Y_prob);
     }
-//
-//    int predict_one(const vector<double>& pixels, double& confidence) {
-//        // TODO: refactor to use .predict()
-//        Matrix X = {pixels};
-//        vector<double> y_prob = softmax(X * W + b)[0]; // just one image, take the first row
-//
-//        int digit_predicted = argmax(y_prob);
-//        confidence = y_prob[digit_predicted];
-//        return digit_predicted;
-//    }
+
+    pair<int, double> predict_one(const Matrix& X) {
+        // TODO: refactor to use NeuralNetwork::predict
+        const int n_samples = X.n_rows, n_classes = b.n_cols;
+        Matrix XW = Matrix(n_samples, n_classes), XWb(n_samples, n_classes), Y_prob(n_samples, n_classes);
+
+        cout << X;
+        cout << W;
+        cout << XW;
+
+        dot(X, W, XW); // XW = X * W
+        add_to_each(XW, b, XWb); // XWb = X * W + b
+        softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
+
+        int digit_predicted = argmax(Y_prob)[0]; // first image, the only one
+        double confidence = Y_prob.data[0][digit_predicted];
+        return make_pair(digit_predicted, confidence);
+    }
 
 
     /*** Serialization ***/

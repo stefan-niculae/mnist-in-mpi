@@ -45,3 +45,11 @@ vector<double> make_one_hot(int value, int n_classes=10) {
     return result;
 }
 
+template <class T>
+ostream& operator<<(ostream& os, const vector<T>& v) {
+    os << '[';
+    for (const auto& x : v)
+        os << x << ' ';
+    return os << ']';
+}
+

@@ -63,9 +63,12 @@ void print_image(const Matrix& images, const int image_n) {
     cout << endl;
 }
 
-void parse_image(const string& str, Matrix& X) {
+void parse_image(string str, Matrix& X) {
+    for (int i = 0; i < str.size(); ++i)
+        if (str[i] == ',') str[i] = ' ';
     istringstream stream(str);
     for (int i = 0; i < X.n_cols; i++)
         stream >> X.data[0][i]; // on first row
+    cout << X.data[0][0]<<endl;
 }
 
