@@ -58,7 +58,7 @@ int main(int argc, const char* argv[]) {
 //    double* w = v+2;
 //    cout << w[0];
 
-    int n_samples = 250;
+    int n_samples = 10000;
     Matrix images(n_samples, 784), labels(n_samples, 10);
     read_from_csv(string("/home/ionut/workspace/ppc/mnist-in-mpi/data/sample.csv"), images, labels);
     NeuralNetwork net;

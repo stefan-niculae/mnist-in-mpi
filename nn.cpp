@@ -51,7 +51,7 @@ void random_init(Matrix& W, double mean=0., double std=1.) {
 
 class NeuralNetwork {
 
-    const int N_SAMPLES = 250;
+    const int N_SAMPLES = 10000;
     const int N_CLASSES = 10; // 10 digits from 0 to 9
     const int DATA_DIM = 784; // 28*28 = 784 pixels for an image
     const int BATCH_SIZE = 100; // after how many pictures the weights are updated
@@ -183,7 +183,6 @@ public:
         dot(X, W, XW); // XW = X * W
         add_to_each(XW, b, XWb); // XWb = X * W + b
         softmax(XWb, Y_prob); // Y_prob = softmax(X * W + b)
-        cout << "here" << endl;
         return argmax_matrix(Y_prob);
     }
 //

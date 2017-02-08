@@ -56,7 +56,7 @@ std::istream& operator>>(std::istream& is, Matrix& matrix) {
 /*** Operators ***/
 // Adds first element of `to_add` to each element on the first column of `matrix`
 // second element of `to_add` to each of second column in `matrix`... etc
-void add_to_each(Matrix& matrix, const Matrix& to_add, Matrix& result) {
+void add_to_each(const Matrix& matrix, const Matrix& to_add, Matrix& result) {
     if (matrix.n_cols != to_add.n_cols)
         throw runtime_error(string_format("Add to each: matrix width and vector size are different: "
                                                   "%d, %d", matrix.n_rows, matrix.n_rows));
@@ -64,7 +64,7 @@ void add_to_each(Matrix& matrix, const Matrix& to_add, Matrix& result) {
         throw runtime_error(string_format("Add to each: vector to add has multiple rows: "
                                                   "%d", to_add.n_rows));
 
-    for (int r = 0; r < to_add.n_rows; ++r)
+    for (int r = 0; r < matrix.n_rows; ++r)
         for (int c = 0; c < matrix.n_cols; ++c)
             result.data[r][c] = matrix.data[r][c] + to_add.data[0][c];
 }
