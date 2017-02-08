@@ -6,8 +6,9 @@
 #include "matrix.cpp"
 #include "evaluate.cpp"
 #include <vector>
-#include <chrono>
+#include <chrono> // stopwatch
 #include "mpi.h"
+#include <utility> // pair
 
 
 using namespace std;
@@ -107,12 +108,13 @@ public:
         return cross_entropy(chunk_Y, cY_prob); // cost
     }
 
-    void train(const Matrix& X, const Matrix& Y,
+    pair<vector<double>, vector<double>>
+    train(const Matrix& X, const Matrix& Y,
 //               vector<double>& cost_history=NONE, vector<double>& accuracy_history=NONE,
-               vector<double>& cost_history, vector<double>& accuracy_history,
                const int n_epochs=100, const int batch_size=200, const double lr=0.1,
+                bool compute_cost=true, bool compute_acc=true,
                const bool verbose=true) {
-        bool compute_cost = (cost_history == NONE), compute_acc = (accuracy_history == NONE);
+
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
         const int n_classes = Y.n_cols;
@@ -141,7 +143,8 @@ public:
         Matrix delta_sums(b.n_rows, b.n_cols);
 
         chrono::time_point<chrono::system_clock> start_time, end_time;
-        double total_cost, partial_cost, acc;
+        double acc, total_cost, partial_cost;
+        vector<double> accuracy_history, cost_history;
         vector<int> Y_labels = labels_from_one_hot(Y); // {5, 2, 9, ... }
         int start_index;
 
@@ -225,6 +228,8 @@ public:
 
         // TODO: print total time and average epoch time, max accuracy
         MPI_Finalize();
+
+        return make_pair(accuracy_history, cost_history);
     }
 
     vector<int> predict(const Matrix& X) {
