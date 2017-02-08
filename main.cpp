@@ -65,9 +65,6 @@ int main(int argc, const char* argv[]) {
     NeuralNetwork net;
     cout << setprecision(3);
     auto histories = net.train(images, labels, 100, 200, 0.5, true, true, true);
-//    for (int i = 0; i < acc_history.size(); ++i) {
-//        cout << acc_history[i] << endl;
-//    }
 
 
 //    Matrix m(4, 2);

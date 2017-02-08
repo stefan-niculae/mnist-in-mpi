@@ -110,10 +110,8 @@ public:
 
     pair<vector<double>, vector<double>>
     train(const Matrix& X, const Matrix& Y,
-//               vector<double>& cost_history=NONE, vector<double>& accuracy_history=NONE,
-               const int n_epochs=100, const int batch_size=200, const double lr=0.1,
-                bool compute_cost=true, bool compute_acc=true,
-               const bool verbose=true) {
+          const int n_epochs=100, const int batch_size=200, const double lr=0.1,
+          bool compute_cost=true, bool compute_acc=true, bool verbose=true) {
 
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
@@ -126,6 +124,7 @@ public:
         MPI_Comm_size(MPI_COMM_WORLD, &n_processes);
         const int n_workers = n_processes - 1; // how many processes compute gradient in parallel, first is master
         const int chunk_size = batch_size / n_workers; // how many rows each worker gets
+        if (rank != MASTER) verbose = false; // only master is allowed to talk
 
         if (n_samples % chunk_size != 0) throw runtime_error("samples not divisible by chunk");
 
@@ -152,7 +151,7 @@ public:
         random_init(W);
 
         for (int epoch = 1; epoch <= n_epochs; ++epoch) {
-            if (rank == MASTER) {
+            if (verbose) {
                 cout << string_format("Epoch %d / %d", epoch, n_epochs) << flush;
                 start_time = chrono::system_clock::now();
             }
@@ -163,34 +162,32 @@ public:
                     // clear summed from previous batch
                     total_grad_W.clear();
                     total_grad_b.clear();
-                    total_cost = 0;
+                    if (compute_cost) total_cost = 0;
 
                     // Get partial gradients from each worker
                     for (int worker = 1; worker <= n_workers; ++worker) {
                         MPI_Recv(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE, worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
                         MPI_Recv(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE, worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                        MPI_Recv(&partial_cost, 1, MPI_DOUBLE, worker, COST_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
+                        if (compute_cost) MPI_Recv(&partial_cost, 1, MPI_DOUBLE, worker, COST_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
 
                         // Sum partial gradients
                         add_to(total_grad_W, partial_grad_W);
                         add_to(total_grad_b, partial_grad_b);
-                        total_cost += partial_cost;
+                        if (compute_cost) total_cost += partial_cost;
                     }
 
                     // After receive
-                    // TODO? regularization
-                    scalar_mult(lr, total_grad_W, lr_grad_W); // TODO!!! minus here!?
+                    scalar_mult(lr, total_grad_W, lr_grad_W);                     // TODO? regularization
                     scalar_mult(lr, total_grad_b, lr_grad_b);
                     sub_from(W, lr_grad_W); // W = W - lr * grad_W
                     sub_from(b, lr_grad_b); // b = b - lr * grad_b
 
-                    cost_history.push_back(total_cost); // TODO
+                    if (compute_cost) cost_history.push_back(total_cost);
                 }
 
 
                 if (rank != MASTER) { // worker
-                    // TODO? make random batch generator
-                    start_index = batch_start + (rank - 1) * chunk_size;
+                    start_index = batch_start + (rank - 1) * chunk_size;                    // TODO? make random batch generator
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
                     partial_cost = grad(chunk_X, chunk_Y,
@@ -206,29 +203,27 @@ public:
                 // Send back updated W and b to all workers
                 MPI_Bcast(W.data[0], W.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
                 MPI_Bcast(b.data[0], b.n_elements, MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-
             }
 
-            if (rank == MASTER) {
+            if (rank == MASTER && compute_acc) {
+                // TODO: add early stopping
+                acc = accuracy(predict(X), Y_labels);
+                accuracy_history.push_back(acc);
+            }
+
+            if (verbose) {
                 end_time = chrono::system_clock::now();
                 chrono::duration<double> elapsed_seconds = end_time - start_time;
-                cout << " done in " << elapsed_seconds.count() << "s, " << flush;
-            }
-
-            if (rank == MASTER) {
-                // TODO: add early stopping
-                if (compute_acc) {
-                    acc = accuracy(predict(X), Y_labels);
-                    accuracy_history.push_back(acc);
-                    cout << "accuracy: " << acc * 100 << "%";
-                }
-                if (compute_cost) cout <<", cost:" << total_cost << endl;
+                cout << "\t\tdone in " << elapsed_seconds.count() << "s" << flush;
+                if (compute_acc)  cout << "\t\taccuracy: " << acc * 100 << "%" << flush;
+                if (compute_cost) cout << "\t\tcost: " << total_cost;
+                cout << endl;
             }
         }
 
-        // TODO: print total time and average epoch time, max accuracy
         MPI_Finalize();
 
+        // TODO: print total time and average epoch time, max accuracy
         return make_pair(accuracy_history, cost_history);
     }
 
