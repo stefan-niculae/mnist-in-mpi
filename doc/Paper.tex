@@ -11,6 +11,7 @@
   \usepgfplotslibrary{external}
   \tikzexternalize
 \usepackage{todonotes}
+\usepackage{wrapfig}
 
 
 
@@ -257,9 +258,13 @@ For more than eight cores, the communication overhead starts to take its toll. N
 
 \newpage
 \section{Graphical Interface}
+
+
 The user is presented with a blank box in which to draw a digit to be recognized. Upon request, the prediction along with the model's confidence in it is displayed. 
 
-\missingfigure[figcolor=white]{GUI}
+\begin{wrapfigure}{r}{0.6\textwidth}\centering
+    \includegraphics[width=6cm]{images/gui.png}
+\end{wrapfigure}
 
 \noindent Since the model was trained on $28 \times 28$ images, we need to pass the input in the same format. On today's screens, an input box of $28 \times 28$ pixels would look comically small. The raw input must be resized accordingly.
 
@@ -267,7 +272,10 @@ The simplest down-sizing method is taking each block of pixels in the original i
 
 The trouble appears with encoding the image -- both the raw image and the model's inputs are in array form instead of a matrix. Ie: the pixels are all placed one after another starting from the top left corner.
 
-\missingfigure[figcolor=white]{resizing example pdf}
+\begin{center}
+\includegraphics[width=\textwidth]{images/resize.png}
+\end{center}
+
 The transformation can be computed by \textit{compacting} the columns:
 $\sum_i Orig_i$ for column at index $\floor{\frac{i}{f}}$. Then for rows: $\sum_i Col_i$ for pixel at index $(i \bmod s) + \floor{\frac{i}{s \times f}}$. Where $Orig$ denotes the the original image $Col$ the column-wise averages. 
 
