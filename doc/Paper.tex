@@ -17,12 +17,12 @@
 \usepackage{hyperref}  % references
   \hypersetup{colorlinks=true,citecolor=black,filecolor=black,linkcolor=black,urlcolor=black} % references settings
 
-\usepackage[automark]{scrpage2} % heading
-  \pagestyle{scrheadings}
-  \ihead[]{Handwritten character recognition in MPI} % left header
-  \ohead[]{\today} % right header
-  \cfoot[]{\pagemark} % footer
-  \setheadsepline[122mm]{0.3mm}
+% \usepackage[automark]{scrpage2} % heading
+%   \pagestyle{scrheadings}
+%   \ihead[]{Handwritten character recognition in MPI} % left header
+%   \ohead[]{\today} % right header
+%   \cfoot[]{\pagemark} % footer
+%   \setheadsepline[122mm]{0.3mm}
 
 
 % floor operator
@@ -66,15 +66,16 @@ We implement a neural network to classify handwritten digits. The training is do
 
 \newpage
 \section{Introduction}
-Proiectul are ca scop evidentierea rolului paralelismului in programare. Avand vedere cantitatea mare de date cu care se confrunta aplicatiile din ziua de astazi, este nevoie ca acestea sa ruleze anumite sarcini concomitent. Pentru a sublinia imbunatatirile aduse de paralelism, s-a implementat in MPI antrenarea unei retele neuronale. In continuare se vor detalia, datele folosite in model, reteaua construita, metodele de paralelism, rezultatele, dar si interfata.
+The project aims to highlight the role of parallelism in programming, especially in Machine Learning tasks. Considering the vast amount of data today's applications have to deal with, it is paramount to run tasks concomitantly. To underline  improvements bought by parallelism, we implemented  a neural network training module in MPI.
+ 
+ 
+We will present the details, data used, model architecture, parallelization strategy and an interactive interface. 
 
 \section{Problem statement}
 \label{sec:problem}
-Pentru o retea neurala care foloseste un algoritm de antrenare bazat pe metoda gradientului descendent si dispune de o cantitate mare de date de antrenare timpul ca reteaua sa ajunga la rezultate satisfacatoare poate dura chiar si zile pe o implementare secventiala
-Ne propunem sa elaboram o implementare paralela a metodei gradientului descendent. Vom folosi pentru validarea implementarii o problema celebra in computer vision, cea a detectarii cifrelor scrise de mana.
+Given a picture of a handwritten digit, label it accordingly 0 - 9.
+This is a classic problem in Computer Vision on which we apply a neural network trained using gradient descent. We seek to reach satisfactory model performance and fast training time, using parallelism.
 
-For a neural network witch use for training the gradient descendent algorithm and dispose a large amount of training data, the time to reach convergence it can take days in a sequentially implementation.
-We purpose to elaborate a parallel implementation of gradient descendent, and for validate that we use a common problem in computer vision: given a picture of a handwritten digit, label it accordingly 0 - 9.
 
 \section{Dataset}
 \label{sec:dataset}
@@ -102,24 +103,19 @@ The images are black-and-white, with a resolution of $28 \times 28$ pixels, repr
 In order to recognize a given image, we need to model to understand the data. It needs to be able to be queried for a new instance in order to provide an interactive demo.
 \\
 
-We use a feed-forward neural network with an one fully connected layer, which predict the digit that has been in input image.
-For an image $x$, initialy $28 \times 28$, we flatten this array into a vector of $784 = 28 \times 28$.
-
-
-\begin{align}
-y &= softmax(Wx + b) \\
+We use a feed-forward neural network with an one fully connected layer:
+\begin{align*}
+y &= f(Wx + b) \\
 label &= argmax(y)
-\end{align}
+\end{align*}
 
-In $(1)$, $W$ is the weights matrix, $10 \times 784$ -- the number of classes(one for each digit) and the dimension of an image ($784$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element.
+Where $W$ is the weights matrix, $10 \times 784$ -- the number of classes(one for each digit) and the dimension of an image ($784$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element. $y$ is a vector of probabilities, from which argmax extracts the predicted labe
 \\
 
 The activation function output a vector of probabilities:
-$$softmax(x_i)=\frac{exp(x_i)}{\sum_j exp(x_j)}$$
+$$f(x_i)=\frac{exp(x_i)}{\sum_j exp(x_j)}$$
 Where $exp(x)$ represents $e^x$, Euler's constant. It \textit{normalizes} the vector, causing the greatest elements to have logarithmic relative value.
 \\
-
-$(2)$ With $y$ vector of probabilities, $argmax$ take the index of the maximum value and results the prediction label.
 
 \begin{figure}[htb]
 \centering
@@ -153,9 +149,7 @@ Early-stopping prevents the model from further learning when performance on the 
 \paragraph{Evaluation}
 Model performance is measured on a separate testing set using the accuracy metric -- ie: the percentage of images correctly classified.
 
-\TODO{more about evaluation?}
-
-\noindent The following chart illustrates model evolution, both on the test and on the training set, after each pass through the dataset.
+\noindent The following chart illustrates model evolution, after each pass through the dataset, on the entire MNIST training (60 000) and test (10 000) dataset.
 
 \begin{center}
 \begin{tikzpicture}
@@ -163,9 +157,10 @@ Model performance is measured on a separate testing set using the accuracy metri
   title={Training performance},
   xlabel={Epoch},
   ylabel={Accuracy (\%)},
-  xmin=0, xmax=100,
+  xmin=0, xmax=250,
   ymin=0, ymax=100,
-  xtick={0,25,50,75,100},
+  enlarge x limits=0.05,
+  xtick={0,50,100,150,200, 250},
   ytick={0,25,50,75,100},
   legend pos=south east,
   axis line style={black!65, line width=.1pt}, % thinner frame border
@@ -175,13 +170,13 @@ Model performance is measured on a separate testing set using the accuracy metri
   every axis plot/.append style={thick},
 ]
 
-\addplot[]
-  coordinates {
-  (0,25)(25,65)(50,90)(100,95)
-  };
 \addplot[dash pattern=on 6pt off 4pt]
   coordinates {
-  (0,25)(25,50)(50,80)(100,90)
+ (0, 25.542341)    (1, 47.745369)    (2, 66.106474)    (3, 79.268610)    (4, 81.409645)    (5, 82.697285)    (6, 83.599091)    (7, 84.318434)    (8, 84.974273)    (9, 85.386156)    (10, 85.663764)    (11, 86.105388)    (12, 86.463159)    (13, 86.705436)    (14, 86.973765)    (15, 87.296094)    (16, 87.391127)    (17, 87.672536)    (18, 87.834651)    (19, 87.989275)    (20, 88.216571)    (21, 88.300424)    (22, 88.423408)    (23, 88.635834)    (24, 88.689947)    (25, 88.783079)    (26, 88.917243)    (27, 89.086849)    (28, 89.001096)    (29, 89.200441)    (30, 89.248964)    (31, 89.334605)    (32, 89.433439)    (33, 89.565703)    (34, 89.670015)    (35, 89.733408)    (36, 89.835932)    (37, 89.940244)    (38, 89.940244)    (39, 90.016606)    (40, 90.037178)    (41, 90.124720)    (42, 90.079998)    (43, 90.175031)    (44, 90.219753)    (45, 90.365097)    (46, 90.448950)    (47, 90.372588)    (48, 90.560753)    (49, 90.534703)    (50, 90.560753)    (51, 90.687426)    (52, 90.603574)    (53, 90.763900)    (54, 90.821590)    (55, 90.810410)    (56, 90.843951)    (57, 90.920425)    (58, 90.901753)    (59, 90.914834)    (60, 90.948375)    (61, 91.037818)    (62, 91.007967)    (63, 91.136541)    (64, 91.125360)    (65, 91.220393)    (66, 91.147721)    (67, 91.233474)    (68, 91.328507)    (69, 91.334097)    (70, 91.384409)    (71, 91.255835)    (72, 91.330296)    (73, 91.438410)    (74, 91.348967)    (75, 91.430919)    (76, 91.522262)    (77, 91.542722)    (78, 91.546524)    (79, 91.531542)    (80, 91.596835)    (81, 91.555803)    (82, 91.624786)    (83, 91.643345)    (84, 91.783100)    (85, 91.768230)    (86, 91.712328)    (87, 91.727198)    (88, 91.818541)    (89, 91.840902)    (90, 91.755149)    (91, 91.900493)    (92, 91.846492)    (93, 91.870754)    (94, 91.909885)    (95, 91.971377)    (96, 91.909885)    (97, 92.034657)    (98, 91.904295)    (99, 91.973165)    (100, 91.982557)    (101, 92.010508)    (102, 92.006706)    (103, 92.012297)    (104, 92.083180)    (105, 92.045838)    (106, 92.131591)    (107, 92.213543)    (108, 92.072000)    (109, 92.189393)    (110, 92.146461)    (111, 92.254575)    (112, 92.245295)    (113, 92.185592)    (114, 92.293706)    (115, 92.273246)    (116, 92.258264)    (117, 92.381248)    (118, 92.278836)    (119, 92.474492)    (120, 92.358887)    (121, 92.375658)    (122, 92.476281)    (123, 92.448330)    (124, 92.351508)    (125, 92.511722)    (126, 92.425969)    (127, 92.388739)    (128, 92.360788)    (129, 92.450231)    (130, 92.502443)    (131, 92.565723)    (132, 92.543363)    (133, 92.621625)    (134, 92.647787)    (135, 92.532182)    (136, 92.560133)    (137, 92.614246)    (138, 92.629116)    (139, 92.578804)    (140, 92.696198)    (141, 92.703689)    (142, 92.586295)    (143, 92.714869)    (144, 92.727838)    (145, 92.657067)    (146, 92.737230)    (147, 92.714869)    (148, 92.660756)    (149, 92.711068)    (150, 92.726050)    (151, 92.735329)    (152, 92.843443)    (153, 92.789330)    (154, 92.828461)    (155, 92.742820)    (156, 92.766970)    (157, 92.876984)    (158, 92.875083)    (159, 92.722248)    (160, 92.794920)    (161, 92.871394)    (162, 92.826673)    (163, 92.878773)    (164, 92.938476)    (165, 92.882574)    (166, 92.958936)    (167, 92.882574)    (168, 92.942165)    (169, 92.895543)    (170, 92.785641)    (171, 92.988788)    (172, 92.953346)    (173, 92.899345)    (174, 92.951445)    (175, 93.014838)    (176, 93.026018)    (177, 92.981297)    (178, 93.018527)    (179, 92.975707)    (180, 93.016738)    (181, 93.024117)    (182, 93.024117)    (183, 93.009248)    (184, 92.984986)    (185, 93.085609)    (186, 92.975707)    (187, 93.052068)    (188, 93.095001)    (189, 93.027919)    (190, 93.083820)    (191, 93.087510)    (192, 92.975707)    (193, 93.063249)    (194, 93.020428)    (195, 92.930985)    (196, 93.135921)    (197, 93.100591)    (198, 93.111771)    (199, 93.115461)    (200, 93.130331)    (201, 93.206804)    (202, 93.121051)    (203, 93.122952)    (204, 93.063249)    (205, 93.171362)    (206, 93.271986)    (207, 93.076330)    (208, 93.156493)    (209, 93.204903)    (210, 93.225363)    (211, 93.197413)    (212, 93.162083)    (213, 93.221674)    (214, 93.242134)    (215, 93.141511)    (216, 93.227264)    (217, 93.201214)    (218, 93.247724)    (219, 93.271986)    (220, 93.234755)    (221, 93.245935)    (222, 93.208593)    (223, 93.307427)    (224, 93.262706)    (225, 93.271986)    (226, 93.298036)    (227, 93.275675)    (228, 93.260805)    (229, 93.130331)    (230, 93.184443)    (231, 93.251525)    (232, 93.214183)    (233, 93.296247)    (234, 93.283166)    (235, 93.296247)    (236, 93.251525)    (237, 93.318608)    (238, 93.324198)    (239, 93.314806)    (240, 93.385690)    (241, 93.305527)    (242, 93.333477)    (243, 93.335378)    (244, 93.255215)    (245, 93.337167)    (246, 93.329788)    (247, 93.286855)    (248, 93.372609)    (249, 93.331577)    (250, 93.314806)
+  };
+\addplot[]
+  coordinates {
+(0, 24.432432)  (1, 44.549688)(2, 56.596855)(3, 62.102859)(4, 66.083265)(5, 68.563395)(6, 71.450773)(7, 70.905093)(8, 73.653296)(9, 74.766428)(10, 75.325960)(11, 76.262903)(12, 75.887467)(13, 77.394473)(14, 78.915509)(15, 78.533935)(16, 77.963218)(17, 78.724613)(18, 79.106624)(19, 79.873274)(20, 79.106624)(21, 79.297958)(22, 80.065484)(23, 80.643426)(24, 80.643426)(25, 79.681283)(26, 79.681283)(27, 79.489511)(28, 80.450560)(29, 81.029814)(30, 80.836510)(31, 81.611037)(32, 81.805215)(33, 81.417077)(34, 81.611037)(35, 81.611037)(36, 81.417077)(37, 82.779383)(38, 82.194226)(39, 82.194226)(40, 81.999611)(41, 82.584112)(42, 83.366506)(43, 82.779383)(44, 82.584112)(45, 83.955593)(46, 83.759013)(47, 83.759013)(48, 83.955593)(49, 84.744100)(50, 84.744100)(51, 83.759013)(52, 84.546646)(53, 83.759013)(54, 84.546646)(55, 84.941772)(56, 83.955593)(57, 83.759013)(58, 82.974872)(59, 84.152393)(60, 84.349410)(61, 84.744100)(62, 84.744100)(63, 85.139662)(64, 85.139662)(65, 85.734641)(66, 84.546646)(67, 85.933403)(68, 85.536096)(69, 85.139662)(70, 86.132384)(71, 85.734641)(72, 85.734641)(73, 86.730633)(74, 85.734641)(75, 85.139662)(76, 85.536096)(77, 85.734641)(78, 85.933403)(79, 86.331582)(80, 85.734641)(81, 85.139662)(82, 86.730633)(83, 85.139662)(84, 85.139662)(85, 86.930485)(86, 86.530999)(87, 86.530999)(88, 85.139662)(89, 86.132384)(90, 86.530999)(91, 86.530999)(92, 86.132384)(93, 86.530999)(94, 86.331582)(95, 86.530999)(96, 86.730633)(97, 86.132384)(98, 86.530999)(99, 87.130555)(100, 86.930485)(101, 86.331582)(102, 86.730633)(103, 86.530999)(104, 86.530999)(105, 85.734641)(106, 86.730633)(107, 86.530999)(108, 86.730633)(109, 85.337770)(110, 86.331582)(111, 85.734641)(112, 86.132384)(113, 86.530999)(114, 86.331582)(115, 86.331582)(116, 86.132384)(117, 86.331582)(118, 86.530999)(119, 86.930485)(120, 86.930485)(121, 85.933403)(122, 86.331582)(123, 86.930485)(124, 86.930485)(125, 86.530999)(126, 87.330843)(127, 87.130555)(128, 85.933403)(129, 86.132384)(130, 86.331582)(131, 85.933403)(132, 87.130555)(133, 86.530999)(134, 86.730633)(135, 86.331582)(136, 85.734641)(137, 86.730633)(138, 86.930485)(139, 86.930485)(140, 86.530999)(141, 87.531349)(142, 87.330843)(143, 86.331582)(144, 87.130555)(145, 86.530999)(146, 86.930485)(147, 87.531349)(148, 87.130555)(149, 86.530999)(150, 86.930485)(151, 87.933014)(152, 87.330843)(153, 87.330843)(154, 86.930485)(155, 86.930485)(156, 87.330843)(157, 87.130555)(158, 87.732072)(159, 87.330843)(160, 86.730633)(161, 87.531349)(162, 87.732072)(163, 86.930485)(164, 87.130555)(165, 87.933014)(166, 87.531349)(167, 87.330843)(168, 87.130555)(169, 87.933014)(170, 87.933014)(171, 87.330843)(172, 87.732072)(173, 87.531349)(174, 87.531349)(175, 87.531349)(176, 87.732072)(177, 87.732072)(178, 87.732072)(179, 87.732072)(180, 88.134173)(181, 87.531349)(182, 87.732072)(183, 87.933014)(184, 87.531349)(185, 87.531349)(186, 86.530999)(187, 88.537144)(188, 87.330843)(189, 86.930485)(190, 88.335550)(191, 87.330843)(192, 87.933014)(193, 87.130555)(194, 87.130555)(195, 87.330843)(196, 87.732072)(197, 88.134173)(198, 87.330843)(199, 88.134173)(200, 87.933014)(201, 87.130555)(202, 87.531349)(203, 86.930485)(204, 87.130555)(205, 87.330843)(206, 87.732072)(207, 87.933014)(208, 87.130555)(209, 87.933014)(210, 87.330843)(211, 87.933014)(212, 87.933014)(213, 87.732072)(214, 88.335550)(215, 87.531349)(216, 87.732072)(217, 87.732072)(218, 87.933014)(219, 88.134173)(220, 86.930485)(221, 87.933014)(222, 87.732072)(223, 87.732072)(224, 88.134173)(225, 87.933014)(226, 88.335550)(227, 88.134173)(228, 87.933014)(229, 88.537144)(230, 87.933014)(231, 87.531349)(232, 87.933014)(233, 87.933014)(234, 87.330843)(235, 87.330843)(236, 87.531349)(237, 87.933014)(238, 86.730633)(239, 87.933014)(240, 87.330843)(241, 87.933014)(242, 88.134173)(243, 87.933014)(244, 88.537144)(245, 87.933014)(246, 87.732072)(247, 87.933014)(248, 87.531349)(249, 88.537144)(250, 88.335550)
   };
   
 \legend{train, test}
@@ -189,7 +184,7 @@ Model performance is measured on a separate testing set using the accuracy metri
 \end{tikzpicture}
 \end{center}
 
-\TODO{comment on chart}
+The training performance is intentionally dashed, as  what interests us is the model's generalization power. It quickly learns in the first 50 epochs and reaches a plateau around the 100 mark. It achieves 93.3\% performance on the training set and 88.3\% on unseen data.
 
 
 

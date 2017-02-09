@@ -3,17 +3,20 @@ Handwritten digits recognition using a parallel neural network.
 
 TODO: redo the demo gif with a white background
 <p align="center">
-  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/demo.gif" alt="Demo gif"/>
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/demo.gif" alt="Demo Gif"/>
 </p>
 
 <p align="center">
   <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/time-chart.png" alt="Time Chart"/>
 </p>
 
+<p align="center">
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/train-chart.png" alt="Training Chart"/>
+</p>
 
-TODO: add training accuracy plot
-
-TODO: add paper pdf and a small screenshot
+<p align="center">
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/paper-sample.png" alt="Paper Sample"/>
+</p>
 
 
 ## Build
