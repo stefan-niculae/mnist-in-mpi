@@ -4,9 +4,18 @@
 #include <string.h>
 #include <stdarg.h>  // For va_start, etc.
 #include <memory>    // For std::unique_ptr
+#include <tuple>        // std::tuple, std::get, std::tie, std::ignore
+
 
 using namespace std;
 
+template <class T>
+ostream& operator<<(ostream& os, const vector<T>& v) {
+    os << '[';
+    for (const auto& x : v)
+        os << x << ' ';
+    return os << ']';
+}
 
 // source: http://stackoverflow.com/questions/2342162/stdstring-formatting-like-sprintf
 std::string string_format(const std::string fmt_str, ...) {
@@ -28,13 +37,13 @@ std::string string_format(const std::string fmt_str, ...) {
     return std::string(formatted.get());
 }
 
-void save_csv(pair<vector<double>,vector<double>> histories, string path) {
-    auto accs = histories.first, costs = histories.second;
-
+void save_csv(tuple<vector<double>,vector<double>, vector<double>> histories, string path) {
+    vector<double> acc_train, acc_test, costs;
+    tie (acc_train, acc_test, costs) = histories;
     ofstream f(path);
-    f << "epoch,accuracy,cost" << endl; // header
-    for (int i = 0; i < accs.size(); ++i)
-        f << i+1 << accs[i] << costs[i] << endl;
+    f << "epoch,accuracy_train,accuracy_test,cost" << endl; // header
+    for (int i = 0; i < acc_train.size(); ++i)
+        f << i+1 << "," << acc_train[i] << "," << acc_test[i] << "," << costs[i] << endl;
     f.close();
 }
 
@@ -44,12 +53,3 @@ vector<double> make_one_hot(int value, int n_classes=10) {
     result[value] = 1;
     return result;
 }
-
-template <class T>
-ostream& operator<<(ostream& os, const vector<T>& v) {
-    os << '[';
-    for (const auto& x : v)
-        os << x << ' ';
-    return os << ']';
-}
-
