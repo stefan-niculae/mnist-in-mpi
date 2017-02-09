@@ -10,7 +10,7 @@ def index():
 @app.route('/recognize')
 def compute():
     pixels = request.args['pixels']
-    command = '../mnist_in_mpi.out predict ' + pixels
+    command = './mnist_in_mpi.out predict ' + pixels
 
     output = os.popen(command).read()  # very hackish, very bad, don't do this
     digit_predicted = int(output.split()[0])

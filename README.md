@@ -6,7 +6,12 @@ TODO: redo the demo gif with a white background
   <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/demo.gif" alt="Demo gif"/>
 </p>
 
-TODO: add training accuracy plot & parallel performance plot
+<p align="center">
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/time-chart.png" alt="Time Chart"/>
+</p>
+
+
+TODO: add training accuracy plot
 
 TODO: add paper pdf and a small screenshot
 
@@ -27,6 +32,6 @@ Or download manually from http://pjreddie.com/projects/mnist-in-csv and place th
 ## Run
 
 * Make sure `models` and `histories` folders exist: `mkdir models histories`
-* Train a model: `./mnist_in_mpi train`
+* Train a model: `mpirun -np <number of processes> ./mnist_in_mpi train`
 * Start the server: `./server.py`
 * Visit [localhost:5000](http://localhost:5000) and try it out!

@@ -113,14 +113,20 @@ public:
     tuple<vector<double>, vector<double>, vector<double>>
     train(const Matrix& X, const Matrix& Y,
           const Matrix& X_test, const Matrix& Y_test,
-          const int n_epochs=100, const int batch_size=200, const double lr=0.1,
-          bool compute_acc=true, bool compute_cost=true, bool verbose=true) {
+          const int n_epochs=100, const int batch_size=200,
+          const double lr=0.1, int anneal_every=-1,
+          const bool shuffle=true, // TODO regularization parameter
+          const bool compute_acc=true, const bool compute_cost=true, bool verbose=true) {
 
         const double lambda_reg = 5.0;
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
         const int n_classes = Y.n_cols;
         double lr_anneal = lr;
+
+        if (anneal_every == -1)
+            anneal_every = n_epochs / 3; // by default, anneal after every third of n_epochs
+
         // MPI
         int rank, n_processes;
         // MPI_Init(NULL, NULL);

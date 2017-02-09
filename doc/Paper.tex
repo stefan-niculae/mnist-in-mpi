@@ -66,8 +66,7 @@ We implement a neural network to classify handwritten digits. The training is do
 
 \newpage
 \section{Introduction}
-\TODO{more here}
-
+Proiectul are ca scop evidentierea rolului paralelismului in programare. Avand vedere cantitatea mare de date cu care se confrunta aplicatiile din ziua de astazi, este nevoie ca acestea sa ruleze anumite sarcini concomitent. Pentru a sublinia imbunatatirile aduse de paralelism, s-a implementat in MPI antrenarea unei retele neuronale. In continuare se vor detalia, datele folosite in model, reteaua construita, metodele de paralelism, rezultatele, dar si interfata.
 
 \section{Problem statement}
 \label{sec:problem}
@@ -108,8 +107,8 @@ For an image $x$, initialy $28 \times 28$, we flatten this array into a vector o
 
 
 \begin{align}
-y = softmax(Wx + b) \\
-image\_label &= argmax(y)
+y &= softmax(Wx + b) \\
+label &= argmax(y)
 \end{align}
 
 In $(1)$, $W$ is the weights matrix, $10 \times 784$ -- the number of classes(one for each digit) and the dimension of an image ($784$). $b$ is the bias vector, $1 \times 10$, corresponding to the free element.
@@ -233,28 +232,33 @@ The following chart illustrates the improvement brought by parallelization on on
   title={Time per epoch},
   xlabel=Processes,
   ylabel=Seconds,
-  bar width=.8cm,
+  bar width=1cm,
+  enlarge x limits=0.2,
+%   enlarge y limits=0.18,
   axis line style={black!65, line width=.1pt}, % thinner border
-  symbolic x coords={1,2,4,6,8,12,16}, % equidistant bars
+  symbolic x coords={1,2,4,8,16}, % equidistant bars
   every x tick/.style={white}, % hide x ticks (make them white)
   every y tick/.style={line width=.1pt, draw=gray!10}, % y ticks same color as grid
   ymajorgrids=true, % show horizontal grid lines
-  grid style={line width=.1pt, draw=gray!10}, % gray grid lines
+  grid style={line width=.1pt, draw=gray!20}, % gray grid lines
   ]
   \addplot[ybar, black!40, fill=black!20] coordinates {
-      (1,8) 
-      (2,5)
-      (4,4) 
-      (6,3) 
-      (8,2.5) 
-      (12,2) 
-      (16,1.5)    
+      (1,5.27) 
+      (2,2.81)
+      (4,1.51)
+      (8,0.78)
+      (16,0.79)
       };
 \end{axis}
 \end{tikzpicture}
 \end{center}
 
-\TODO{comment on chart}
+\noindent The benchmarks were done on the MNIST training set of 60 000 images with a batch size of 1000, on a machine with 20 processors @ 2.60GHz.
+
+The training time is almost halved when going from one (5.27s) to two (2.81s) processors: 88\% improvement. Further 86\% improvement is achieved on four processors (1.51s), less than a third (29\%) of the single-process time. Doubling the number of processes to eight yields a further 94\% improvement (0.78s), making it only 15\% of the single-process time. This is notable when considering the perfect improvement possible of 12.5\%. 
+
+For more than eight cores, the communication overhead starts to take its toll. No further performance improvement is achieved. Chunk sizes get increasingly small (1000, 500, 250, 125, 63), hitting an inflection point at the eight-processes mark.
+
 
 \newpage
 \section{Graphical Interface}

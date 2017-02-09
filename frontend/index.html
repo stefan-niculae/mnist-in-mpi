@@ -62,7 +62,6 @@
 
             // TODO: start loader here
             $.getJSON('/recognize', {pixels: resized_pixels().join(',')}, function (result) {
-                console.log(result);
                 afterRecog.find('.prediction').text(result.number);
                 afterRecog.find('.conf').text(Math.round(result.confidence * 100));
                 // TODO: stop loader here
