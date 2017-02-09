@@ -2,7 +2,7 @@
 Handwritten digits recognition using a parallel neural network.
 
 <p align="center">
-  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/demo.gif" alt="Demo Gif"/>
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/frontend/demo.gif" alt="Demo Gif"/>
 </p>
 
 <p align="center">
