@@ -52,9 +52,7 @@
 
 \vspace{5cm}
 \begin{abstract}
-\TODO{rewrite when paper is done, talk about each section}
-
-We implement a neural network to classify handwritten digits. The training is done in parallel, using MPI. We provide a comparison for model hyper-parameters and for training time vs number of processes. It achieves great accuracy and fast training time. An interactive demo is also presented
+We implement a neural network to classify handwritten digits with training done in parallel, using MPI. We present the dataset, model architecture, parallelization strategy and an interactive interface. Then we discuss model accuracy evolution and time performance benchmarks. Our implementation achieves good prediction performance with fast training time.
 \end{abstract}
 
 
@@ -68,10 +66,10 @@ We implement a neural network to classify handwritten digits. The training is do
 \newpage
 \section{Introduction}
 The project aims to highlight the role of parallelism in programming, especially in Machine Learning tasks. Considering the vast amount of data today's applications have to deal with, it is paramount to run tasks concomitantly. To underline  improvements bought by parallelism, we implemented  a neural network training module in MPI.
- 
- 
-We will present the details, data used, model architecture, parallelization strategy and an interactive interface. 
 
+In the following sections we will talk about the dataset used; detail model architecture and reason for choosing it along with its training performance. Parallelism has a dedicated section with a high-level overview of the solution and time performance benchmarks. The last sections contain an outline of the graphical interface and implementation details for the entire project.
+
+ 
 \section{Problem statement}
 \label{sec:problem}
 Given a picture of a handwritten digit, label it accordingly 0 - 9.
@@ -131,7 +129,7 @@ Where $y_t$ is the true, correct label of an image and $y_p$ is the label predic
 
 $L_2$ regularization is used:
 $$\frac{1}{\lambda} \sum_i \sum_j W_{i,j}^2$$
-Where $\lambda$ is the regularization parameter. This limits overfitting by imposing a penalty on big weights.
+Where $\lambda$ is the regularization parameter. This limits over-fitting by imposing a penalty on big weights.
 \\
 
 The model uses an adaptive learning rate:
