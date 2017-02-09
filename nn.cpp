@@ -83,8 +83,8 @@ public:
             W(data_dim, n_classes), b(1, n_classes) { }
 
     NeuralNetwork(string path) :
-        N_CLASSES(10), DATA_DIM(784),
-        W(784, 10), b(1, 10) // TODO
+            N_CLASSES(10), DATA_DIM(784),
+            W(784, 10), b(1, 10) // TODO
     {
         this->load(path);
     }
@@ -114,22 +114,19 @@ public:
     train(const Matrix& X, const Matrix& Y,
           const Matrix& X_test, const Matrix& Y_test,
           const int n_epochs=100, const int batch_size=200,
-          const double lr=0.1, int anneal_every=-1,
-          const bool shuffle=true, // TODO regularization parameter
+          double lr=0.1, int anneal_every=-1,
+          const bool shuffle=true, const double lambda_reg = 5.0,
           const bool compute_acc=true, const bool compute_cost=true, bool verbose=true) {
 
-        const double lambda_reg = 5.0;
         const int n_samples = X.n_rows;
         const int data_dim = X.n_cols;
         const int n_classes = Y.n_cols;
-        double lr_anneal = lr;
 
         if (anneal_every == -1)
             anneal_every = n_epochs / 3; // by default, anneal after every third of n_epochs
 
         // MPI
         int rank, n_processes;
-        // MPI_Init(NULL, NULL);
         MPI_Comm_rank(MPI_COMM_WORLD, &rank);
         MPI_Comm_size(MPI_COMM_WORLD, &n_processes);
         const int n_workers = n_processes - 1; // how many processes compute gradient in parallel, first is master
@@ -154,15 +151,15 @@ public:
         Matrix delta_sums(b.n_rows, b.n_cols);
 
         chrono::time_point<chrono::system_clock> start_time, end_time;
-        double acc, total_cost, partial_cost;
-        vector<double> accuracy_train, accuracy_test, cost_history;
+        double accuracy_train, accuracy_test, total_cost, partial_cost;
+        vector<double> accuracy_train_history, accuracy_test_history, cost_history;
         vector<int> Y_labels = labels_from_one_hot(Y); // {5, 2, 9, ... }
         vector<int> Y_labels_test = labels_from_one_hot(Y_test); // {5, 2, 9, ... }
 
         int start_index;
-        // seed
-        srand(time(NULL) + rank);
 
+        // seed
+        srand(time(NULL) * rank);
         // Initial weights
         random_init(W);
 
@@ -177,8 +174,8 @@ public:
                 start_time = chrono::system_clock::now();
             }
             // learning rate anneal
-            //if (epoch % (n_epochs/2) == 0)
-            //    lr_anneal /= 2.;
+//            if (epoch % (n_epochs/2) == 0)
+//                lr /= 2.;
 
             for (int batch_start = 0; batch_start < X.n_rows; batch_start += batch_size) {
                 if (rank == MASTER) {
@@ -201,20 +198,18 @@ public:
                     }
                     //After receive
                     double reg_term = 1 - lr * lambda_reg / double(n_samples);
-                    scalar_mult(reg_term, W, W);
-                    scalar_mult(lr/batch_size, total_grad_W, lr_grad_W);                     // TODO? regularization
+                    scalar_mult(reg_term, W, W); // regularization
+                    scalar_mult(lr/batch_size, total_grad_W, lr_grad_W);
                     scalar_mult(lr/batch_size, total_grad_b, lr_grad_b);
                     sub_from(W, lr_grad_W); // W = (1 - lr * lambda / n) * W - lr/batch_size * grad_W
                     sub_from(b, lr_grad_b); // b = b - lr/batch_size * grad_b
-
-                    if (compute_cost) cost_history.push_back(total_cost);
                 }
 
 
                 if (rank != MASTER) { // worker
-                    // start_index = batch_start + (rank - 1) * chunk_size;                    // TODO? make random batch generator
-                    start_index = rand_int(0, n_samples - chunk_size - 1);
-                    // cout << "Worker #" << rank << "start_index: " << start_index << endl;
+                    start_index = shuffle ?
+                                  rand_int(0, n_samples - chunk_size - 1) :
+                                  batch_start + (rank - 1) * chunk_size; // random batch
                     take_chunk(X, start_index, chunk_X); // chunk_X = X[batch_start ... batch_start + CHUNK_SIZE]
                     take_chunk(Y, start_index, chunk_Y);
                     partial_cost = grad(chunk_X, chunk_Y,
@@ -225,9 +220,6 @@ public:
                     MPI_Send(partial_grad_W.data[0], partial_grad_W.n_elements, MPI_DOUBLE, MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
                     MPI_Send(partial_grad_b.data[0], partial_grad_b.n_elements, MPI_DOUBLE, MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
                     if (compute_cost) MPI_Send(&partial_cost, 1, MPI_DOUBLE, MASTER, COST_TAG, MPI_COMM_WORLD);
-
-                    vector<int> chunk_Y_labels = labels_from_one_hot(chunk_Y);
-                    cout << "Accuracy chunk: " << accuracy(predict(chunk_X), chunk_Y_labels) << endl;
                 }
 
                 // Send back updated W and b to all workers
@@ -237,28 +229,32 @@ public:
 
             if (rank == MASTER && compute_acc) {
                 // TODO: add early stopping
+                accuracy_train = accuracy(predict(X), Y_labels);
+                accuracy_train_history.push_back(accuracy_train);
 
-                acc = accuracy(predict(X_test), Y_labels_test);
-                accuracy_test.push_back(acc);
-
-                // acc = accuracy(predict(X), Y_labels);
-                accuracy_train.push_back(acc);
+                accuracy_test = accuracy(predict(X_test), Y_labels_test);
+                accuracy_test_history.push_back(accuracy_test);
             }
 
             if (verbose) {
                 end_time = chrono::system_clock::now();
                 chrono::duration<double> elapsed_seconds = end_time - start_time;
                 cout << "\t\tdone in " << elapsed_seconds.count() << "s" << flush;
-                if (compute_acc)  cout << "\t\taccuracy: " << acc * 100 << "%" << flush;
-                if (compute_cost) cout << "\t\tcost: " << total_cost;
+                if (compute_acc)  {
+                    cout << "\t\taccuracy train: " << accuracy_train * 100 << "%" << flush;
+                    cout << "\t\taccuracy test:  " << accuracy_test  * 100 << "%" << flush;
+                }
+                if (compute_cost) {
+                    cout << "\t\tcost: " << total_cost;
+                    cost_history.push_back(total_cost);
+                }
+
                 cout << endl;
             }
         }
 
-        // MPI_Finalize();
-
         // TODO: print total time and average epoch time, max accuracy
-        return make_tuple(accuracy_train, accuracy_test, cost_history);
+        return make_tuple(accuracy_train_history, accuracy_test_history, cost_history);
     }
 
     vector<int> predict(const Matrix& X) {
