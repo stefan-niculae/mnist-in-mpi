@@ -70,4 +70,3 @@ void parse_image(string str, Matrix& X) {
     for (int i = 0; i < X.n_cols; i++)
         stream >> X.data[0][i]; // on first row
 }
-

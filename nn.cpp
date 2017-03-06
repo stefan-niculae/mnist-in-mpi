@@ -5,7 +5,6 @@
 #include <fstream>
 #include "matrix.cpp"
 #include "evaluate.cpp"
-<<<<<<< HEAD
 #include <vector>
 #include <chrono> // stopwatch
 #include "mpi.h"
@@ -13,39 +12,15 @@
 #include <stdlib.h> // rand()
 #include <tuple>        // std::tuple, std::get, std::tie, std::ignore
 #include <time.h>       /* time */
-=======
-#include "mpi.h"
-
->>>>>>> 618e22d83600f77de276d89fa6cdfe039eefb62c
 
 using namespace std;
 
 
 /*** MPI constants ***/
 const int MASTER = 0;
-<<<<<<< HEAD
 const int GRAD_W_TAG = 0;
 const int GRAD_B_TAG = 1;
 const int COST_TAG   = 2;
-=======
-const int GRAD_W_TAG    = 0;
-const int GRAD_B_TAG    = 1;
-//const int UPDATED_W_TAG = 2;
-
-
-
-/*** Requisites ***/
-vector<double> softmax(const vector<double>& v) {
-    // Subtract maximum to avoid overflow
-    double max = *max_element(v.begin(), v.end());
-
-    vector<double> expd = v; // copy, does not mutate v
-    double sum = 0;
-    for (double& x : expd) {
-        x = exp(x - max);
-        sum += x;
-    }
->>>>>>> 618e22d83600f77de276d89fa6cdfe039eefb62c
 
 static vector<double> NONE = vector<double>();
 
@@ -132,7 +107,6 @@ public:
         col_wise_sums(delta, partial_grad_b);
         // scalar_mult(contribution, delta_sums, partial_grad_b); // grad_b = 1/n * col_wise_sums(delta)
 
-<<<<<<< HEAD
         return compute_cost ? cross_entropy(chunk_Y, cY_prob) : 0;
     }
 
@@ -260,110 +234,6 @@ public:
 
                 accuracy_test = accuracy(predict(X_test), Y_labels_test);
                 accuracy_test_history.push_back(accuracy_test);
-=======
-    void train(Matrix X, Matrix Y,
-               vector<double>& cost_history, vector<double>& accuracy_history,
-               int n_epochs=10, int batch_size=100, double lr=0.1,
-               bool verbose=true) {
-        // MPI initialization
-        MPI_Init(NULL, NULL);
-        int rank, n_processes;
-        MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-        MPI_Comm_size(MPI_COMM_WORLD, &n_processes);
-        int n_workers = n_processes - 1; // first process is the master
-        int chunk_size = batch_size / n_workers;
-
-
-        double cost, acc;
-        auto Y_labels = from_one_hot_matrix(Y); // {5, 2, 9, ... }
-
-        Matrix total_grad_W = blank_matrix(data_dim, n_classes, 0.);
-        Matrix total_grad_b = blank_matrix(1, n_classes, 0.);
-        Matrix partial_grad_W = blank_matrix(data_dim, n_classes, 0.);
-        Matrix partial_grad_b = blank_matrix(1, n_classes, 0.);
-
-        for (int epoch = 1; epoch <= n_epochs; ++epoch) {
-            if (verbose && rank == 0)
-                cout << string_format("Epoch %d / %d", epoch, n_epochs) << endl;
-
-            for (int i = 0; i < n_rows(X); i+=batch_size) {
-                // TODO: make random batch generator
-                if (rank == 0) { // master
-//                    cout << "master: will wait for workers for batch " << i << " to " << i+batch_size << endl;
-                    // Clear the total gradient from previous communications
-                    clear(total_grad_W);
-                    clear(total_grad_b);
-
-                    // Get partial gradients from each worker
-                    // TODO don't wait for processes sequentially, take them in the order they are finished
-                    for (int worker = 1; worker <= n_workers; ++worker) {
-                        // Use the partial_grad  as a buffer in which to write matrix received from each worker sequentially
-
-                        // Warning: relying on the fact that std::vector is stored in a contiguous block of memory
-                        for (int row = 0; row < n_rows(partial_grad_W); ++row)
-                            MPI_Recv(partial_grad_W[row].data(), n_cols(partial_grad_W), MPI_DOUBLE, worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//                        MPI_Recv(&(partial_grad_W[0][0]), n_elements(partial_grad_W), MPI_DOUBLE, worker, GRAD_W_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-                        MPI_Recv(partial_grad_b[0].data(), n_elements(partial_grad_b), MPI_DOUBLE, worker, GRAD_B_TAG, MPI_COMM_WORLD, MPI_STATUS_IGNORE);
-//                        cout << "master: received from worker #" << worker << " partial grad W row = " << partial_grad_W[300] << endl;
-
-                        // Add it to the sum
-                        total_grad_W += partial_grad_W;
-                        total_grad_b += partial_grad_b;
-
-                    }
-
-                    // After receiving all the partial gradients
-//                    cout << "master: " << "total grad W row = " << total_grad_W[525] << "\t\ttotal grad b = " << total_grad_b;
-
-                    W = W - lr * total_grad_W; // TODO regularization
-                    b = b - lr * total_grad_b;
-//                        cost_history.push_back(cost);
-
-                    // Send back updated W and b to all workers
-                    MPI_Bcast(b[0].data(), n_elements(b), MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-                    for (int row = 0; row < n_rows(partial_grad_W); ++row)
-                        MPI_Bcast(W[row].data(), n_cols(W), MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-//                    cout << "master: send W row = " << W[300] << "\t\t b = " << b;
-
-
-                }
-                else { // workers
-                    int start_index = i + (rank-1) * chunk_size;
-                    int end_index = start_index + chunk_size;
-//                    cout << "worker #" << rank << ": computing gradient on " << start_index<< " to " << end_index << endl;
-                    Matrix chunk_X = chunk(X, start_index, end_index); // TODO: move this out of here
-                    Matrix chunk_Y = chunk(Y, start_index, end_index);
-
-                    if (n_rows(chunk_X) == 0) { // the number of samples is not divisible by the chunk size: remainder
-                        // TODO: send status "nothing to do" instead of gradient zero and cost N/A
-                        partial_grad_W = blank_matrix(data_dim, n_classes, 0.);
-                        partial_grad_b = blank_matrix(1, n_classes, 0.);
-                        cost = 0; // N/A
-//                        cout << "worker #" << rank << ": no rows left" << endl;
-                    }
-                    else {
-                        cost = grad(chunk_X, chunk_Y, partial_grad_W,  partial_grad_b);
-//                        cout << "worker #" << rank << ": partial grad W row = " << partial_grad_W[300] << ",\t\tpartial grad b = " << partial_grad_b;
-                    }
-
-                    // Send partial gradients to master
-                    for (int row = 0; row < n_rows(partial_grad_W); ++row)
-                        MPI_Send(partial_grad_W[row].data(), n_cols(partial_grad_W), MPI_DOUBLE, MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
-//                    MPI_Send(&(partial_grad_W[0][0]), n_elements(partial_grad_W), MPI_DOUBLE, MASTER, GRAD_W_TAG, MPI_COMM_WORLD);
-                    MPI_Send(partial_grad_b[0].data(), n_elements(partial_grad_b), MPI_DOUBLE, MASTER, GRAD_B_TAG, MPI_COMM_WORLD);
-//                    cout << "worker #" << rank << ": sent partial b" << endl;
-
-
-                    // Receive broadcasted W and b matrices
-                    MPI_Bcast(b[0].data(), n_elements(b), MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-                    for (int row = 0; row < n_rows(partial_grad_W); ++row)
-                        MPI_Bcast(W[row].data(), n_cols(W), MPI_DOUBLE, MASTER, MPI_COMM_WORLD);
-//                    cout << "worker #" << rank << ": received W row = " << W[300] << "\t\t b = " << b;
-                }
-//                break;
-
-
->>>>>>> 618e22d83600f77de276d89fa6cdfe039eefb62c
             }
 
             if (verbose) {
