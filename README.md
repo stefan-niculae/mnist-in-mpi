@@ -2,10 +2,10 @@
 Handwritten digits recognition using a parallel neural network.
 
 <p align="center">
-  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/frontend/demo.gif" alt="Demo Gif"/>
-  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/time-chart.png" alt="Time Chart"/>
-  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/train-chart.png" alt="Training Chart"/>
-  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/2D-array/doc/paper-sample.png" alt="Paper Sample"/>
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/frontend/demo.gif" alt="Demo Gif"/>
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/doc/time-chart.png" alt="Time Chart"/>
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/doc/train-chart.png" alt="Training Chart"/>
+  <img src="https://github.com/stefan1niculae/mnist-in-mpi/raw/master/doc/paper-sample.png" alt="Paper Sample"/>
 </p>
 
 
