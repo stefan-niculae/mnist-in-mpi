@@ -37,8 +37,22 @@ public:
 
 };
 
+<<<<<<< HEAD
 void print_dimensions(const Matrix& m) {
     cout << m.n_rows << " x " << m.n_cols << endl;
+=======
+template <class T>
+inline int n_elements(const vector<vector<T>>& m) {
+    return n_rows(m) * n_cols(m);
+}
+
+template <class T>
+vector<T> chunk(const vector<T>& m, int from, int to) {
+    if (from < 0)
+        throw "From < 0";
+    if (to > m.size()) to = m.size();
+    return vector<T>(&m[from], &m[to]);
+>>>>>>> 618e22d83600f77de276d89fa6cdfe039eefb62c
 }
 
 /*** IO ***/
@@ -82,10 +96,19 @@ void col_wise_sums(const Matrix& matrix, Matrix& result) {
 }
 
 /*** Operations ***/
+<<<<<<< HEAD
 inline void take_chunk(const Matrix& from, int start_row, Matrix& into) {
     into.data = &(from.data[start_row]);
     into.is_chunk = true;
 }
+=======
+void clear(Matrix& m) {
+    for (auto& row : m)
+        for (auto& elem : row)
+            elem = 0.;
+}
+
+>>>>>>> 618e22d83600f77de276d89fa6cdfe039eefb62c
 
 // matrix transposition
 void transpose(const Matrix& matrix, Matrix& transposed) {
@@ -149,9 +172,30 @@ void sub_from(Matrix& to, const Matrix& from) {
                                                   "to = (%d, %d), from = (%d, %d)",
                                           to.n_rows, to.n_cols, from.n_rows, from.n_cols));
 
+<<<<<<< HEAD
     for (int i = 0; i < to.n_rows; ++i)
         for (int j = 0; j < to.n_cols; ++j)
             to.data[i][j] -= from.data[i][j];
+=======
+template <class T>
+vector<vector<T>> operator+= (vector<vector<T>>& lhs, const vector<vector<T>>& rhs) {
+    lhs = lhs + rhs;
+    return lhs;
+}
+
+// matrix - vector addition
+template <class T>
+vector<vector<T>> operator+ (const vector<vector<T>>& matrix, const vector<T>& vect) {
+    if (n_cols(matrix) != vect.size())
+        throw runtime_error(string_format("Matrix - vector addition: number of rows is different: "
+                                                  "%d, %d", n_cols(matrix), vect.size()));
+
+    auto result = matrix;
+    for (int i = 0; i < n_rows(matrix); ++i)
+        for (int j = 0; j < n_cols(matrix); ++j)
+            result[i][j] += vect[j];
+    return result;
+>>>>>>> 618e22d83600f77de276d89fa6cdfe039eefb62c
 }
 
 void add_to(Matrix& to, const Matrix& from) {
